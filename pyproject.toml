@@ -1,0 +1,28 @@
+[project]
+name = "cesta-solidaria"
+version = "1.0.0"
+description = "Sistema de gestao de cestas basicas para projetos sociais"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+]
+ignore = [
+    # SVGs, base64 e f-strings HTML nao quebram sem perder legibilidade.
+    "E501",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
