@@ -118,7 +118,7 @@ st.data_editor(
 
 # ===== ALERTAS DE ESTOQUE =====
 if cestas_desejadas > cestas_estoque:
-    st.warning(f"Estoque atual permite apenas {cestas_estoque} cesta(s). Para {cestas_desejadas} cesta(s), falta dar baixa no estoque de {cestas_desejadas - cestas_estoque} cesta(s).")
+    st.warning(f"Estoque so cobre {cestas_estoque} cesta(s) de {cestas_desejadas} solicitadas. Compre os itens faltantes ou reduza a quantidade.")
 
 if orcamento > 0 and cestas_desejadas > cestas_orcamento:
     st.error(f"Orçamento permite apenas {int(cestas_orcamento)} cestas.")
