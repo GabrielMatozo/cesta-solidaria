@@ -188,7 +188,7 @@ with col1:
                         }
                         db.upsert_produtos([upsert_data], token)
                         if prod.get("termo_busca"):
-                            db.upsert_produtos([{
+                            db.atualizar_produtos([{
                                 "id": prod["id"],
                                 "token_tenda": slug_dia,
                                 "url_tenda": f"https://www.tendaatacado.com.br/produto/{slug_dia}",
