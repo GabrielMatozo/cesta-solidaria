@@ -43,6 +43,22 @@ def _url(tabela: str) -> str:
     return f"{supabase_url()}/rest/v1/{tabela}"
 
 
+def atualizar_produtos(rows, token, *, service=False):
+    """Atualiza parcialmente produtos por id (PATCH individual por row)."""
+    headers = _headers(token, service)
+    headers["Prefer"] = "return=minimal"
+    for row in rows:
+        pid = row["id"]
+        payload = {k: v for k, v in row.items() if k != "id"}
+        resp = requests.patch(
+            f"{_url('produtos')}?id=eq.{pid}",
+            json=payload,
+            headers={**headers, "Content-Type": "application/json"},
+            timeout=DEFAULT_TIMEOUT,
+        )
+        resp.raise_for_status()
+
+
 def listar_produtos(token, *, service=False):
     resp = requests.get(
         f"{_url('produtos')}?select=*&order=nome.asc",

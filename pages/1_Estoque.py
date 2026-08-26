@@ -140,7 +140,7 @@ if st.button("Salvar Alteracoes", type="primary", width='stretch'):
                     patch[col] = int(row[col]) if col == "qtd_por_cesta" else float(row[col])
             alterados.append(patch)
         try:
-            db.upsert_produtos(alterados, user["access_token"])
+            db.atualizar_produtos(alterados, user["access_token"])
             flash(f"{len(alterados)} produto(s) atualizado(s)!")
             st.cache_data.clear()
             st.rerun()
@@ -150,7 +150,6 @@ if st.button("Salvar Alteracoes", type="primary", width='stretch'):
 st.divider()
 
 # ===== ACOES =====
-st.divider()
 st.markdown("### Importar / Exportar")
 
 # Export row
