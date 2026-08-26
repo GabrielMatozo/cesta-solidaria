@@ -1,0 +1,85 @@
+name: Backup semanal do banco
+
+on:
+  schedule:
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup-db
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r scripts/requirements.txt
+      - run: python scripts/backup_db.py > backup.json
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      # Repo publico = artifact baixavel por qualquer pessoa.
+      # O backup inclui historico financeiro (compras), entao cifra com
+      # AES-256 antes de subir. BACKUP_KEY deve estar nos secrets do repo.
+      - name: Cifrar backup
+        run: |
+          [ -n "$BACKUP_KEY" ] || { echo "ERRO: secret BACKUP_KEY nao configurado"; exit 1; }
+          openssl enc -aes-256-cbc -pbkdf2 -salt -in backup.json -out backup.json.enc -pass env:BACKUP_KEY
+          rm backup.json
+        env:
+          BACKUP_KEY: ${{ secrets.BACKUP_KEY }}
+      - name: Publicar release semanal (retencao indefinida)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="backup-$(date -u +%Y-%m-%d)"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG ja existe; substituindo asset."
+            gh release upload "$TAG" backup.json.enc --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" backup.json.enc \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Backup $TAG" \
+              --notes "Backup cifrado AES-256. Restore: openssl enc -d -aes-256-cbc -pbkdf2 -in backup.json.enc -out backup.json -pass env:BACKUP_KEY"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backup-json-${{ github.run_id }}
+          path: backup.json.enc
+          retention-days: 30
+
+  alerta:
+    needs: backup
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'Falha no backup do banco - Cesta Solidária';
+            const busca = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${context.repo.owner}/${context.repo.repo} is:issue is:open in:title "${title}"`
+            });
+            if (busca.data.total_count > 0) {
+              console.log('Issue aberta já existe para esta falha; não duplicando.');
+              return;
+            }
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: `O workflow de backup semanal da Cesta Solidária falhou no run ${context.runId}. Verifique os logs e execute o backup manualmente.`,
+            })
