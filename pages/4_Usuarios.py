@@ -1,3 +1,5 @@
+import contextlib
+
 import streamlit as st
 
 from src import auth, db
@@ -69,19 +71,18 @@ if alvo_exclusao:
     if confirmation_dialog(
         f"Excluir {nome_alvo}?",
         "Esta ação é irreversível. O usuário perderá acesso ao sistema.",
-        confirm_label="Excluir", cancel_label="Cancelar", variant="danger",
-        key=f"confirm_excluir_{alvo_exclusao['id']}"
+        confirm_label="Excluir", cancel_label="Cancelar", key=f"confirm_excluir_{alvo_exclusao['id']}"
     ):
         try:
-            db.excluir_usuario(alvo_exclusao["id"], service=True)
+            db.excluir_usuario(alvo_exclusao["id"], user["access_token"])
             flash(f"Usuário {nome_alvo} excluído")
             st.cache_data.clear()
             st.rerun()
         except Exception as e:
-            if "401" in str(e) or "Unauthorized" in str(e):
-                st.error("Erro: SERVICE_ROLE_KEY não configurado no Streamlit Cloud.")
+            if "propria conta" in str(e):
+                st.error("Você não pode excluir a própria conta.")
             else:
-                st.error(f"Erro: {e}")
+                st.error(f"Erro ao excluir usuário: {e}")
 
 # ===== CRIAR NOVO USUÁRIO =====
 st.divider()
@@ -96,7 +97,7 @@ with st.form("novo_usuario_form"):
         senha = st.text_input("Senha temporária *", type="password", placeholder="Mínimo 6 caracteres")
         is_admin = st.checkbox("Administrador", value=False)
 
-    if st.form_submit_button("Criar Usuário", type="primary"):
+    if st.form_submit_button("Criar Voluntário", type="primary"):
         if not email or not nome or not senha:
             st.error("Preencha todos os campos obrigatórios")
         elif "@" not in email:
@@ -112,7 +113,12 @@ with st.form("novo_usuario_form"):
                     st.cache_data.clear()
                     st.rerun()
                 except Exception as e:
-                    msg = str(e).lower()
+                    corpo = ""
+                    resp_obj = getattr(e, "response", None)
+                    if resp_obj is not None:
+                        with contextlib.suppress(Exception):
+                            corpo = str(resp_obj.json().get("message", "")).lower()
+                    msg = (str(e) + " " + corpo).lower()
                     if "duplicate key" in msg or "already registered" in msg or "already exists" in msg:
                         st.error("Este email já está cadastrado.")
                     elif "apenas administradores" in msg:

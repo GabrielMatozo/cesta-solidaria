@@ -127,12 +127,12 @@ st.markdown("### Alerta de preço desatualizado")
 dias_input = st.number_input(
     "Dias sem atualização para alertar",
     min_value=1, max_value=30,
-    value=int(config_atual["preco_stale_dias"] or 2),
+    value=int(config_atual['preco_stale_dias'] or config.PRECO_STALE_DIAS_DEFAULT),
 )
-if st.button("Salvar threshold"):
+if st.button("Salvar limite de dias"):
     db.set_config("preco_stale_dias", str(dias_input), token)
     st.cache_data.clear()
-    st.success("Threshold salvo!")
+    st.success("Limite salvo!")
 
 st.divider()
 st.markdown("### Ações administrativas")
@@ -249,7 +249,7 @@ with col3:
                 with open(csv_path, encoding="utf-8") as f:
                     df = csv_io.ler_csv(f.read())
                 cols = ["nome", "marca", "unidade", "qtd_por_cesta", "estoque_atual",
-                        "preco_atual", "token_tenda", "url_tenda", "ativo"]
+                        "preco_atual", "token_tenda", "url_tenda", "termo_busca", "ativo"]
                 for col in cols:
                     if col not in df.columns:
                         df[col] = None
@@ -295,7 +295,7 @@ if st.button("Descobrir Tokens Tenda", type="secondary", width='stretch'):
                         upsert_data = {
                             "id": prod["id"],
                             "nome": prod["nome"],
-                            "marca": marca_dia or prod.get("marca"),
+                            "marca": prod.get("marca"),
                             "unidade": prod.get("unidade"),
                             "qtd_por_cesta": prod.get("qtd_por_cesta"),
                             "estoque_atual": prod.get("estoque_atual"),

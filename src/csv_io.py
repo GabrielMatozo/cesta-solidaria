@@ -4,7 +4,8 @@ import pandas as pd
 
 COLUNAS_CSV = [
     "id", "nome", "marca", "unidade", "qtd_por_cesta", "estoque_atual",
-    "preco_atual", "token_tenda", "url_tenda", "ativo", "ultima_atualizacao_preco",
+    "preco_atual", "token_tenda", "url_tenda", "termo_busca", "ativo",
+    "ultima_atualizacao_preco",
 ]
 
 
@@ -62,6 +63,7 @@ def diff_importacao(atual: pd.DataFrame, novo: pd.DataFrame) -> dict:
     novos = []
     alterados = []
     campos = ["nome", "marca", "unidade", "qtd_por_cesta", "estoque_atual",
+              "termo_busca",
               "preco_atual", "token_tenda", "url_tenda", "ativo"]
     for _, r in novo.iterrows():
         rid = r.get("id")

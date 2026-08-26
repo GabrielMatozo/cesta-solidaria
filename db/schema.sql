@@ -41,7 +41,11 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  if auth.uid() is not null and new.is_admin is distinct from old.is_admin then
+  -- a RPC admin_criar_usuario seta esta flag localmente na transacao;
+  -- fora dela, nenhum usuario autenticado altera o proprio papel.
+  if auth.uid() is not null
+     and coalesce(current_setting('app.admin_rpc', true), 'off') <> 'on'
+     and new.is_admin is distinct from old.is_admin then
     raise exception 'is_admin so pode ser alterado via operacao administrativa';
   end if;
   return new;
@@ -229,7 +233,6 @@ grant usage on schema public to authenticated, service_role;
 
 revoke all privileges on all tables in schema public from authenticated;
 revoke all privileges on all tables in schema public from anon;
-revoke all privileges (nome, email) on public.profiles from authenticated;
 
 -- Tabelas futuras criadas pelo postgres ja nascem fechadas para anon.
 do $$
@@ -301,6 +304,7 @@ begin
 
   -- o trigger handle_new_user criou o profile; aplica o papel pedido
   select id into novo_id from auth.users where email = lower(p_email);
+  perform set_config('app.admin_rpc', 'on', true);
   update public.profiles set is_admin = p_is_admin where id = novo_id;
   return novo_id;
 end $$;
@@ -323,8 +327,6 @@ revoke execute on function public.admin_criar_usuario(text, text, text, boolean)
 revoke execute on function public.admin_excluir_usuario(uuid) from public, anon;
 grant execute on function public.admin_criar_usuario(text, text, text, boolean) to authenticated;
 grant execute on function public.admin_excluir_usuario(uuid) to authenticated;
-
--- ============ seed ============
 
 -- ============ seed ============
 insert into public.regions (region_id, nome, cep_referencia)

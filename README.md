@@ -4,7 +4,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.46+-FF4B4B.svg)](https://streamlit.io)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E.svg)](https://supabase.com)
-[![Tests](https://img.shields.io/badge/tests-58%20passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-71%20passing-brightgreen.svg)]()
 [![Deploy](https://img.shields.io/badge/Deploy-Streamlit%20Cloud-FF4B4B.svg)](https://streamlit.io/cloud)
 
 Sistema de gestão de cestas básicas para projetos sociais e instituições de caridade. Controle de estoque, simulação de cestas, geração de lista de compras em PDF, histórico de compras e automação de preços via scraping do Tenda Atacado.
@@ -34,7 +34,7 @@ Sistema de gestão de cestas básicas para projetos sociais e instituições de 
 | **Banco/Auth** | Supabase (PostgreSQL + Auth + RLS) |
 | **Automação** | GitHub Actions (cron diário/semanal) |
 | **Deploy** | Streamlit Community Cloud (gratuito) |
-| **Testes** | pytest (58 testes) |
+| **Testes** | pytest (71 testes) |
 
 ---
 
@@ -70,7 +70,7 @@ do GitHub).
 export SUPABASE_URL="https://SEU-PROJETO.supabase.co"
 export SUPABASE_SERVICE_ROLE_KEY="sua-service-role-key"
 python scripts/seed_from_csv.py
-# Insere 23 produtos base + 4 regiões (Indaiatuba, Salto, Itu, Campinas)
+# Insere 26 produtos base + 4 regiões (Indaiatuba, Salto, Itu, Campinas)
 ```
 
 ### 4. Criar Primeiro Admin
@@ -131,11 +131,11 @@ cesta-solidaria/
 ├── .github/workflows/
 │   ├── update-prices.yml       # Cron diário + alerta falha
 │   └── backup-db.yml           # Cron semanal + alerta falha
-├── seed/produtos_initial.csv   # 23 produtos base (sem token_tenda)
+├── seed/produtos_initial.csv   # 26 produtos base (sem token_tenda)
 ├── assets/
 │   ├── style.css               # Design system (variáveis, tema)
 │   └── cesta.png               # Logo/favicon
-└── tests/                      # 58 testes (auth, calc, csv, db, etc)
+└── tests/                      # 71 testes (auth, calc, csv, db, scraper, etc)
 ```
 
 ---
@@ -216,7 +216,7 @@ ou admin-only.
 git checkout -b feat/nova-funcionalidade
 
 # Código + Testes
-pytest -q  # deve passar 58/58
+pytest -q  # deve passar 71/71
 
 # Commit descritivo (sem prefixos feat:/fix:)
 git commit -m "adicionar exportação XLSX no estoque"

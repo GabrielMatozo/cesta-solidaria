@@ -32,7 +32,7 @@ jobs:
           name: custo-cesta-${{ github.run_id }}
           path: custo_cesta.txt
           retention-days: 365
-        if: always() && hashFiles('custo_cesta.txt') != 
+        if: always() && hashFiles('custo_cesta.txt') != ''
 
   alerta:
     needs: scrape

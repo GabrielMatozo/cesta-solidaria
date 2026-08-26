@@ -52,7 +52,7 @@ df["valor_familia"] = df.apply(
 # ===== FILTROS =====
 col1, col2, col3 = st.columns(3)
 with col1:
-    filtro_data = st.date_input("Periodo", value=[], key="hist_data")
+    filtro_data = st.date_input("Período", value=[], key="hist_data")
 with col2:
     busca = st.text_input("Buscar", placeholder="Filtrar por nome...", key="hist_busca")
 with col3:
@@ -85,12 +85,12 @@ df_filtrado = df_filtrado.sort_values(col, ascending=asc).reset_index(drop=True)
 st.markdown(f"### Compras ({len(df_filtrado)} registros)")
 
 for _, compra in df_filtrado.iterrows():
-    with st.expander(f"{compra['num_cestas']} cestas - {compra['data_exibicao']} - R$ {compra['total']:.2f} - R$ {compra['valor_familia']:.2f}/familia"):
+    with st.expander(f"{compra['num_cestas']} cestas - {compra['data_exibicao']} - R$ {compra['total']:.2f} - R$ {compra['valor_familia']:.2f}/família"):
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("Cestas", compra["num_cestas"])
         with col2:
-            st.metric("Valor/Familia", f"R$ {compra['valor_familia']:.2f}")
+            st.metric("Valor/Família", f"R$ {compra['valor_familia']:.2f}")
         with col3:
             st.metric("Total", f"R$ {compra['total']:.2f}")
 
@@ -119,6 +119,9 @@ for _, compra in df_filtrado.iterrows():
 # ===== GRAFICOS =====
 st.divider()
 st.markdown("### Evolução")
+
+if len(df_filtrado) < 2:
+    st.caption("Cadastre pelo menos 2 compras para ver os gráficos de evolução.")
 
 col1, col2 = st.columns(2)
 

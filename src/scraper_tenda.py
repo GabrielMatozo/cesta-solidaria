@@ -134,10 +134,16 @@ def escolher_mais_barato(produtos, alvo, palavras=None):
     (comparacao sem acento) - descarta produtos fora da categoria que a
     busca do mercado traz junto (ex: fuba em busca de farinha de milho).
     """
-    melhores = [
-        p for p in produtos
-        if p.disponivel and p.preco > 0 and peso_normalizado(p.nome) == alvo
-    ]
+    def peso_do(p):
+        return peso_normalizado(p.nome) or peso_normalizado(p.slug)
+
+    if alvo is None:
+        melhores = [p for p in produtos if p.disponivel and p.preco > 0]
+    else:
+        melhores = [
+            p for p in produtos
+            if p.disponivel and p.preco > 0 and peso_do(p) == alvo
+        ]
     if palavras:
         nome_norm = None
         filtrados = []
@@ -349,8 +355,9 @@ class TendaScraper:
         """Busca o termo e retorna a marca mais barata do mesmo peso/volume.
 
         unidade_alvo: texto do produto cadastrado (ex: "900ml", "1kg") que
-        define o peso alvo. Se nao informado ou sem peso, usa o primeiro
-        resultado mais barato sem filtro de peso.
+        define o peso alvo. Sem unidade_alvo ou sem peso reconhecivel,
+        nao filtra por peso: devolve o candidato disponivel mais barato
+        que combine com as palavras do termo.
         """
         resultado = self.buscar(termo, pagina=1)
         candidatos = list(resultado.produtos)

@@ -5,7 +5,16 @@ import pandas as pd
 import streamlit as st
 
 from src import auth, calc, config, db, pdf
-from src.ui import flash, load_css, render_flash, render_page_header, render_sidebar
+from src.ui import (
+    carregar_dias_stale_cached,
+    carregar_produtos_cached,
+    flash,
+    listar_desatualizados,
+    load_css,
+    render_flash,
+    render_page_header,
+    render_sidebar,
+)
 
 load_css()
 render_flash()
@@ -20,14 +29,8 @@ render_page_header("Simulador de Cestas", "Calcule cestas, gere lista de compras
 token = auth.get_token()
 
 # ===== CARREGAR PRODUTOS =====
-@st.cache_data(ttl=10)
-def carregar_produtos(token):
-    return db.listar_produtos(token)
-
-
-@st.cache_data(ttl=60)
-def carregar_dias_stale(token):
-    return int(db.get_config("preco_stale_dias", token) or config.PRECO_STALE_DIAS_DEFAULT)
+carregar_produtos = carregar_produtos_cached
+carregar_dias_stale = carregar_dias_stale_cached
 
 with st.spinner("Carregando produtos..."):
     df = pd.DataFrame(carregar_produtos(token))
@@ -78,10 +81,7 @@ with col3:
 
 # ===== ALERTAS DE PREÇO (calculados uma unica vez) =====
 dias = carregar_dias_stale(token)
-desatualizados_rows = [
-    r for _, r in df.iterrows()
-    if r.get("token_tenda") and config.preco_desatualizado(r.get("ultima_atualizacao_preco"), dias)
-]
+desatualizados_rows = listar_desatualizados(df, dias).to_dict("records")
 desatualizados = [r["nome"] for r in desatualizados_rows]
 
 if desatualizados:

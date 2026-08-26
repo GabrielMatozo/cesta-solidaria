@@ -139,6 +139,6 @@ if submitted:
 # Footer alinhado a largura do card
 st.markdown(
     '<div class="login-shell"><p style="margin-top:12px;font-size:0.7rem;'
-    'opacity:0.5;text-align:center;">Cesta Solidária v1.0</p></div>',
+    'opacity:0.75;text-align:center;">Cesta Solidária v1.0</p></div>',
     unsafe_allow_html=True,
 )

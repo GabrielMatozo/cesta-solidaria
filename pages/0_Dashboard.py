@@ -99,8 +99,8 @@ if estoque_baixo:
 
 if precos_velhos:
     sugestoes.append({
-        "title": f"{precos_velhos} precos desatualizados (>2 dias)",
-        "desc": "Execute o scraper ou atualize manualmente na Configuração",
+        "title": f"{precos_velhos} preços desatualizados (>{dias_stale} dias)",
+        "desc": "Execute o scraper ou atualize manualmente nas Configurações",
         "action": "pages/5_Config.py",
     })
 

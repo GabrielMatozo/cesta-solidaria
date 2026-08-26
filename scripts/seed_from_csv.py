@@ -51,7 +51,7 @@ def main() -> int:
         df = csv_io.ler_csv(fh.read())
 
     cols = ["nome", "marca", "unidade", "qtd_por_cesta", "estoque_atual",
-            "preco_atual", "token_tenda", "url_tenda", "ativo"]
+            "preco_atual", "token_tenda", "url_tenda", "termo_busca", "ativo"]
     for col in cols:
         if col not in df.columns:
             df[col] = None

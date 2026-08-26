@@ -20,6 +20,35 @@ def carregar_logo_b64() -> str:
         return ""
 
 
+@st.cache_data(ttl=10)
+def carregar_produtos_cached(token):
+    """Produtos ativos para as paginas de estoque/simulador."""
+    from src import db
+    return db.listar_produtos(token)
+
+
+@st.cache_data(ttl=60)
+def carregar_dias_stale_cached(token):
+    """Threshold de dias para preco desatualizado (config do banco)."""
+    from src import config, db
+    return int(db.get_config("preco_stale_dias", token) or config.PRECO_STALE_DIAS_DEFAULT)
+
+
+def listar_desatualizados(df, dias: int):
+    """Linhas com token_tenda cujo preco esta fora do limite de dias."""
+    import pandas as pd
+
+    from src import config
+
+    linhas = []
+    for _, r in df.iterrows():
+        if r.get("token_tenda") and config.preco_desatualizado(
+            r.get("ultima_atualizacao_preco"), dias
+        ):
+            linhas.append(r)
+    return pd.DataFrame(linhas) if linhas else []
+
+
 def html_block(raw: str) -> str:
     """Normaliza blocos de HTML multi-linha para uso seguro com st.markdown.
 
@@ -173,11 +202,6 @@ def render_sidebar():
     """), unsafe_allow_html=True)
 
 
-def toast(message: str, icon: str = "info"):
-    """Mostra toast notification."""
-    st.toast(message)
-
-
 def render_page_header(titulo: str, subtitulo: str = ""):
     """Renderiza cabecalho padrao das paginas."""
     titulo_seg = html.escape(str(titulo))
@@ -195,7 +219,6 @@ def confirmation_dialog(
     mensagem: str,
     confirm_label: str = "Confirmar",
     cancel_label: str = "Cancelar",
-    variant: str = "danger",
     key: str = "confirm",
 ) -> bool:
     """Dialog de confirmacao inline.

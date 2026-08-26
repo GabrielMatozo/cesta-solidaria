@@ -2,7 +2,16 @@ import pandas as pd
 import streamlit as st
 
 from src import auth, config, csv_io, db, estoque
-from src.ui import flash, load_css, render_flash, render_page_header, render_sidebar
+from src.ui import (
+    carregar_dias_stale_cached,
+    carregar_produtos_cached,
+    flash,
+    listar_desatualizados,
+    load_css,
+    render_flash,
+    render_page_header,
+    render_sidebar,
+)
 
 load_css()
 render_flash()
@@ -17,14 +26,8 @@ render_page_header("Estoque e Produtos", "Gerencie produtos, estoque, tokens Ten
 token = auth.get_token()
 
 # ===== CARREGAR DADOS =====
-@st.cache_data(ttl=10)
-def carregar_produtos(token):
-    return db.listar_produtos(token)
-
-
-@st.cache_data(ttl=60)
-def carregar_dias_stale(token):
-    return int(db.get_config("preco_stale_dias", token) or config.PRECO_STALE_DIAS_DEFAULT)
+carregar_produtos = carregar_produtos_cached
+carregar_dias_stale = carregar_dias_stale_cached
 
 
 def formulario_novo_produto():
@@ -211,15 +214,13 @@ if st.session_state.get("show_import"):
                             st.error(f"Erro ao aplicar importação: {e}")
 
 # ===== ALERTAS DE PREÇO DESATUALIZADO =====
-desatualizados = []
-for _, r in df.iterrows():
-    if r.get("token_tenda") and config.preco_desatualizado(r.get("ultima_atualizacao_preco"), dias_stale):
-        nome = r.get("nome", "")
-        data = config.formatar_data_hora(r.get("ultima_atualizacao_preco"))
-        desatualizados.append(f"{nome} ({data})")
-
-if desatualizados:
-    st.warning("**Atenção:** " + str(len(desatualizados)) + " produto(s) com preço desatualizado: " + ", ".join(desatualizados[:5]) + ("..." if len(desatualizados) > 5 else ""))
+desat_df = listar_desatualizados(df, dias_stale)
+if not desat_df.empty:
+    resumo = ", ".join(
+        f"{r['nome']} ({config.formatar_data_hora(r.get('ultima_atualizacao_preco'))})"
+        for _, r in desat_df.head(5).iterrows()
+    )
+    st.warning(f"**Atenção:** {len(desat_df)} produto(s) com preço desatualizado: {resumo}{'...' if len(desat_df) > 5 else ''}")
 
 # ===== FORMULÁRIO NOVO PRODUTO =====
 formulario_aberto = bool(st.session_state.get("show_new_form"))
