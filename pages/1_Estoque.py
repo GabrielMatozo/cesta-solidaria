@@ -101,54 +101,54 @@ dias_stale = carregar_dias_stale(token)
 df_filtrado = estoque.filtrar(df, texto, status, dias_stale)
 df_filtrado = estoque.ordenar(df_filtrado, campo, crescente)
 
-# ===== EXIBIR TABELA =====
-if df_filtrado.empty:
-    st.info("Nenhum produto encontrado com os filtros atuais.")
-else:
-    # Preparar dados para exibicao
-    display_df = df_filtrado.copy()
-    display_df["preco_atual_fmt"] = display_df["preco_atual"].apply(lambda x: f"R$ {x:.2f}")
-    display_df["custo_cesta_fmt"] = display_df["custo_cesta"].apply(lambda x: f"R$ {x:.2f}")
+# ===== EDITAR ESTOQUE RAPIDO =====
+st.markdown("### Editar Estoque")
+st.caption("Altere estoque e quantidade por cesta. Clique em Salvar para confirmar.")
 
-    # Status do preço
-    def status_preco(row):
-        if pd.isna(row.get("token_tenda")):
-            return "Manual"
-        if config.preco_desatualizado(row.get("ultima_atualizacao_preco"), dias_stale):
-            return "Desatualizado"
-        return "Automático"
+edit_df = df[["id", "nome", "unidade", "qtd_por_cesta", "estoque_atual"]].copy()
+edit_df["qtd_por_cesta"] = edit_df["qtd_por_cesta"].astype(int)
+edit_df["estoque_atual"] = edit_df["estoque_atual"].astype(float)
 
-    display_df["status_preco"] = display_df.apply(status_preco, axis=1)
-    display_df["ultima_atualizacao"] = display_df["ultima_atualizacao_preco"].apply(
-        lambda x: config.formatar_data_hora(x) if pd.notna(x) else "-"
-    )
+edited = st.data_editor(
+    edit_df,
+    column_config={
+        "id": st.column_config.NumberColumn("id", disabled=True, visible=False),
+        "nome": st.column_config.TextColumn("Produto", disabled=True),
+        "unidade": st.column_config.TextColumn("Unid.", disabled=True),
+        "qtd_por_cesta": st.column_config.NumberColumn("Qtd/Cesta", format="%.0f", min_value=0, step=1),
+        "estoque_atual": st.column_config.NumberColumn("Estoque", format="%.1f", min_value=0.0, step=1.0),
+    },
+    disabled=["id", "nome", "unidade"],
+    hide_index=True,
+    width='stretch',
+    key="estoque_editor",
+)
 
-    # Configurar colunas
-    colunas_show = ["nome", "marca", "unidade", "qtd_por_cesta", "estoque_atual",
-                    "preco_atual_fmt", "custo_cesta_fmt", "status_preco", "ultima_atualizacao"]
-    colunas_rename = {
-        "nome": "Produto", "marca": "Marca", "unidade": "Unid.",
-        "qtd_por_cesta": "Qtd/Cesta", "estoque_atual": "Estoque",
-        "preco_atual_fmt": "Preço", "custo_cesta_fmt": "Custo/Cesta",
-        "status_preco": "Status", "ultima_atualizacao": "Ult. Atualização"
-    }
+if st.button("Salvar Alteracoes", type="primary", width='stretch'):
+    original = df[["id", "qtd_por_cesta", "estoque_atual"]].set_index("id")
+    novo = edited[["id", "qtd_por_cesta", "estoque_atual"]].set_index("id")
 
-    st.dataframe(
-        display_df[colunas_show].rename(columns=colunas_rename),
-        width='stretch',
-        hide_index=True,
-        column_config={
-            "Produto": st.column_config.TextColumn("Produto", width="medium"),
-            "Marca": st.column_config.TextColumn("Marca", width="small"),
-            "Unid.": st.column_config.TextColumn("Unid.", width="small"),
-            "Qtd/Cesta": st.column_config.NumberColumn("Qtd/Cesta", format="%.0f", width="small"),
-            "Estoque": st.column_config.NumberColumn("Estoque", format="%.1f", width="small"),
-            "Preço": st.column_config.NumberColumn("Preço", format="R$ %.2f", width="small"),
-            "Custo/Cesta": st.column_config.NumberColumn("Custo/Cesta", format="R$ %.2f", width="small"),
-            "Status": st.column_config.TextColumn("Status", width="medium"),
-            "Ult. Atualização": st.column_config.TextColumn("Ult. Atualização", width="medium"),
-        }
-    )
+    diff = original.compare(novo, keep_equal=False)
+    if diff.empty:
+        st.info("Nenhuma alteracao detectada.")
+    else:
+        alterados = []
+        for prod_id in diff.index:
+            row = edited[edited["id"] == prod_id].iloc[0]
+            patch = {"id": int(prod_id)}
+            for col in ["qtd_por_cesta", "estoque_atual"]:
+                if col in diff.columns.get_level_values(0):
+                    patch[col] = int(row[col]) if col == "qtd_por_cesta" else float(row[col])
+            alterados.append(patch)
+        try:
+            db.upsert_produtos(alterados, user["access_token"])
+            flash(f"{len(alterados)} produto(s) atualizado(s)!")
+            st.cache_data.clear()
+            st.rerun()
+        except Exception as e:
+            st.error(f"Erro ao salvar: {e}")
+
+st.divider()
 
 # ===== ACOES =====
 st.divider()
