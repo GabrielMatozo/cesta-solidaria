@@ -118,7 +118,7 @@ st.dataframe(
 
 # ===== ALERTAS DE ESTOQUE =====
 if cestas_desejadas > cestas_estoque:
-    st.error(f"Estoque só permite {cestas_estoque} cestas. Faltam {cestas_desejadas - cestas_estoque} cestas.")
+    st.warning(f"Estoque atual permite apenas {cestas_estoque} cesta(s). Para {cestas_desejadas} cesta(s), falta dar baixa no estoque de {cestas_desejadas - cestas_estoque} cesta(s).")
 
 if orcamento > 0 and cestas_desejadas > cestas_orcamento:
     st.error(f"Orçamento permite apenas {int(cestas_orcamento)} cestas.")
