@@ -1,27 +1,27 @@
 id,nome,marca,unidade,qtd_por_cesta,estoque_atual,preco_atual,token_tenda,url_tenda,termo_busca,ativo
 29,Achocolatado (200g),Toddy,200g,1,0,7.45,achocolatado-em-po-toddy-200g-185,https://www.tendaatacado.com.br/produto/achocolatado-em-po-toddy-200g-185,achocolatado em po 200g,True
-2,Açúcar (1kg),Pateko,,1,0,2.79,acucar-extra-fino-pateko-1kg,https://www.tendaatacado.com.br/produto/acucar-extra-fino-pateko-1kg,acucar 1kg,True
-25,Arroz Tipo 1 (5kg),Visconde,,1,0,17.9,arroz-tipo-1-visconde-5kg-2500,https://www.tendaatacado.com.br/produto/arroz-tipo-1-visconde-5kg-2500,arroz tipo 1 5kg,True
+2,Açúcar (1kg),Pateko,,5,0,2.79,acucar-extra-fino-pateko-1kg,https://www.tendaatacado.com.br/produto/acucar-extra-fino-pateko-1kg,acucar 1kg,True
+25,Arroz Tipo 1 (5kg),Visconde,,2,0,17.9,arroz-tipo-1-visconde-5kg-2500,https://www.tendaatacado.com.br/produto/arroz-tipo-1-visconde-5kg-2500,arroz tipo 1 5kg,True
 13,Bolacha Água e Sal (360g),Renata,,1,0,3.49,biscoito-agua-e-sal-renata-360g-18592,https://www.tendaatacado.com.br/produto/biscoito-agua-e-sal-renata-360g-18592,biscoito agua e sal 360g,True
 12,Bolacha Maizena Doce (360g),Renata,,1,0,4.25,biscoito-de-maizena-renata-360g-12832,https://www.tendaatacado.com.br/produto/biscoito-de-maizena-renata-360g-12832,biscoito maizena 360g,True
-14,Bolacha Recheada Chocolate (90g),Rancheiro,,1,0,1.59,bisc-rech-rancheiro-chocolate-90g,https://www.tendaatacado.com.br/produto/bisc-rech-rancheiro-chocolate-90g,biscoito recheado chocolate 90g,True
+14,Bolacha Recheada Chocolate (90g),Rancheiro,,3,0,1.59,bisc-rech-rancheiro-chocolate-90g,https://www.tendaatacado.com.br/produto/bisc-rech-rancheiro-chocolate-90g,biscoito recheado chocolate 90g,True
 7,Café Torrado e Moído (500g),Select,,1,0,20.59,cafe-almof-trad-select-500g,https://www.tendaatacado.com.br/produto/cafe-almof-trad-select-500g,cafe torrado 500g,True
 15,Creme de Leite em Pó (200g),Mococa,,1,0,1.65,mistura-lactea-creme-de-leite-mococa-200g-30252,https://www.tendaatacado.com.br/produto/mistura-lactea-creme-de-leite-mococa-200g-30252,mistura lactea creme de leite 200g,True
 31,Ervilha (170g),Knorr,170g,1,0,4.29,ervilha-em-conserva-knorr-170g-24036,https://www.tendaatacado.com.br/produto/ervilha-em-conserva-knorr-170g-24036,ervilha em conserva 170g,True
-9,Farinha de Mandioca Crua (500g),PQ,,1,0,3.85,farinha-de-mandioca-crua-pq-500g-1487,https://www.tendaatacado.com.br/produto/farinha-de-mandioca-crua-pq-500g-1487,farinha de mandioca 500g,True
+9,Farinha de Mandioca Crua (500g),PQ,,2,0,3.85,farinha-de-mandioca-crua-pq-500g-1487,https://www.tendaatacado.com.br/produto/farinha-de-mandioca-crua-pq-500g-1487,farinha de mandioca 500g,True
 32,Farinha de Milho (500g),Maratá,500g,1,0,2.49,farinha-de-milho-flocada-marata-500g-30021,https://www.tendaatacado.com.br/produto/farinha-de-milho-flocada-marata-500g-30021,farinha de milho 500g,True
-6,Farinha de Trigo (1kg),Select,,1,0,2.89,farinha-de-trigo-select-1kg-20211,https://www.tendaatacado.com.br/produto/farinha-de-trigo-select-1kg-20211,farinha de trigo 1kg,True
+6,Farinha de Trigo (1kg),Select,,2,0,2.89,farinha-de-trigo-select-1kg-20211,https://www.tendaatacado.com.br/produto/farinha-de-trigo-select-1kg-20211,farinha de trigo 1kg,True
 30,Farofa (500g),PQ,500g,1,0,7.99,farofa-pronta-tradicional-pq-500g-22082,https://www.tendaatacado.com.br/produto/farofa-pronta-tradicional-pq-500g-22082,farofa pronta 500g,True
-26,Feijão Carioca (1kg),5 Estrelas,,1,0,6.89,feijao-carioca-5-estrelas-1kg-30378,https://www.tendaatacado.com.br/produto/feijao-carioca-5-estrelas-1kg-30378,feijao carioca 1kg,True
-8,Fubá Mimoso (500g),PQ,,1,0,2.15,fuba-mimoso-pq-500g-16943,https://www.tendaatacado.com.br/produto/fuba-mimoso-pq-500g-16943,fuba 500g,True
+26,Feijão Carioca (1kg),5 Estrelas,,3,0,6.89,feijao-carioca-5-estrelas-1kg-30378,https://www.tendaatacado.com.br/produto/feijao-carioca-5-estrelas-1kg-30378,feijao carioca 1kg,True
+8,Fubá Mimoso (500g),PQ,,2,0,2.15,fuba-mimoso-pq-500g-16943,https://www.tendaatacado.com.br/produto/fuba-mimoso-pq-500g-16943,fuba 500g,True
 10,Goiabada (300g),Select,,1,0,3.99,goiabada-select-300g,https://www.tendaatacado.com.br/produto/goiabada-select-300g,goiabada 300g,True
 16,Leite Condensado Semidesnatado (395g),Campos do Jordão,,1,0,4.69,leite-condensado-semidesnatado-campos-do-jordao-395g,https://www.tendaatacado.com.br/produto/leite-condensado-semidesnatado-campos-do-jordao-395g,leite condensado desnatado 395g,True
-5,Macarrão Espaguete com Ovos (500g),Flor de Lis,,1,0,2.59,macarrao-espaguete-com-ovos-flor-de-lis-500g-27260,https://www.tendaatacado.com.br/produto/macarrao-espaguete-com-ovos-flor-de-lis-500g-27260,macarrao espaguete 500g,True
+5,Macarrão Espaguete com Ovos (500g),Flor de Lis,,2,0,2.59,macarrao-espaguete-com-ovos-flor-de-lis-500g-27260,https://www.tendaatacado.com.br/produto/macarrao-espaguete-com-ovos-flor-de-lis-500g-27260,macarrao espaguete 500g,True
 3,Macarrão Instantâneo Lámen Carne (85g),Todeschini,,1,0,1.29,macarrao-instantaneo-lamen-carne-todeschini-85g,https://www.tendaatacado.com.br/produto/macarrao-instantaneo-lamen-carne-todeschini-85g,macarrao instantaneo 85g,True
-4,Macarrão Parafuso com Ovos (500g),Flor de Lis,,1,0,2.59,macarrao-parafuso-com-ovos-flor-de-lis-500g-27258,https://www.tendaatacado.com.br/produto/macarrao-parafuso-com-ovos-flor-de-lis-500g-27258,macarrao parafuso 500g,True
+4,Macarrão Parafuso com Ovos (500g),Flor de Lis,,2,0,2.59,macarrao-parafuso-com-ovos-flor-de-lis-500g-27258,https://www.tendaatacado.com.br/produto/macarrao-parafuso-com-ovos-flor-de-lis-500g-27258,macarrao parafuso 500g,True
 17,Mistura Láctea Condensada (395g),Mococa,,1,0,4.25,mistura-lactea-condensada-mococa-caixa-395g-30254,https://www.tendaatacado.com.br/produto/mistura-lactea-condensada-mococa-caixa-395g-30254,mistura lactea condensada 395g,True
-28,Molho de Tomate (300g),Pomodoro,300g,1,0,1.39,molho-tomate-pomodoro-tradicional-cica-sache-300g,https://www.tendaatacado.com.br/produto/molho-tomate-pomodoro-tradicional-cica-sache-300g,molho de tomate 300g,True
-1,Óleo de Soja (900ml),Vitaliv,,1,0,7.35,oleo-do-soja-vitaliv-900ml,https://www.tendaatacado.com.br/produto/oleo-do-soja-vitaliv-900ml,oleo de soja 900ml,True
-27,Sal (1kg),Marfim,1kg,1,0,2.09,sal-refinado-marfim-1kg,https://www.tendaatacado.com.br/produto/sal-refinado-marfim-1kg,sal refinado 1kg,True
+28,Molho de Tomate (300g),Pomodoro,300g,2,0,1.39,molho-tomate-pomodoro-tradicional-cica-sache-300g,https://www.tendaatacado.com.br/produto/molho-tomate-pomodoro-tradicional-cica-sache-300g,molho de tomate 300g,True
+1,Óleo de Soja (900ml),Vitaliv,,3,0,7.35,oleo-do-soja-vitaliv-900ml,https://www.tendaatacado.com.br/produto/oleo-do-soja-vitaliv-900ml,oleo de soja 900ml,True
+27,Sal (1kg),Marfim,1kg,2,0,2.09,sal-refinado-marfim-1kg,https://www.tendaatacado.com.br/produto/sal-refinado-marfim-1kg,sal refinado 1kg,True
 23,Tempero Completo (300g),Ajinomoto,,1,0,6.69,tempero-completo-sabor-ami-300g-7688,https://www.tendaatacado.com.br/produto/tempero-completo-sabor-ami-300g-7688,tempero completo 300g,True
 11,Vinagre de Álcool (750ml),Neval,,1,0,2.19,vinagre-de-alcool-neval-750ml-18908,https://www.tendaatacado.com.br/produto/vinagre-de-alcool-neval-750ml-18908,vinagre 750ml,True
