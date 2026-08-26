@@ -164,4 +164,4 @@ if precos:
             st.line_chart(prod_precos.set_index("dia")["preco"], height=250)
             st.caption(f"Evolução do preço - Região: {prod_precos['region_id'].iloc[0] if 'region_id' in prod_precos.columns else 'N/A'}")
 else:
-    st.info("Nenhum histórico de preços disponível ainda. Execute o scraper na Configuração.")
+    st.info("Nenhum historico de precos ainda. Execute o scraper na pagina Configuracoes.")

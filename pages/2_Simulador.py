@@ -36,7 +36,7 @@ with st.spinner("Carregando produtos..."):
     df = pd.DataFrame(carregar_produtos(token))
 
 if df.empty:
-    st.warning("Nenhum produto cadastrado. Vá em **Estoque** para cadastrar produtos.")
+    st.warning("Estoque vazio. Va em **Estoque** para cadastrar produtos.")
     if st.button("Ir para Estoque", type="primary", width='stretch'):
         st.switch_page("pages/1_Estoque.py")
     st.stop()
@@ -85,13 +85,13 @@ desatualizados_rows = listar_desatualizados(df, dias).to_dict("records")
 desatualizados = [r["nome"] for r in desatualizados_rows]
 
 if desatualizados:
-    st.warning(f"**Atenção:** {len(desatualizados)} produto(s) com preço desatualizado: " + ", ".join(desatualizados[:5]) + ("..." if len(desatualizados) > 5 else ""))
+    st.warning(f"**{len(desatualizados)} produto(s) com preco desatualizado:** " + ", ".join(desatualizados[:5]) + ("..." if len(desatualizados) > 5 else ""))
 
 # ===== O QUE FALTA COMPRAR =====
 st.markdown("### Lista de Compras")
 
 if faltando.empty:
-    st.success("Não falta comprar nada. O estoque atende a todas as cestas!")
+    st.success("Estoque completo. Nao precisa comprar nada!")
     st.stop()
 
 # Renomear colunas para compatibilidade com o UI
@@ -121,7 +121,7 @@ if cestas_desejadas > cestas_estoque:
     st.warning(f"Estoque so cobre {cestas_estoque} cesta(s) de {cestas_desejadas} solicitadas. Compre os itens faltantes ou reduza a quantidade.")
 
 if orcamento > 0 and cestas_desejadas > cestas_orcamento:
-    st.error(f"Orçamento permite apenas {int(cestas_orcamento)} cestas.")
+    st.warning(f"Orcamento so cobre {int(cestas_orcamento)} cesta(s) de {cestas_desejadas} solicitadas.")
 
 # ===== ACOES =====
 st.divider()
@@ -139,7 +139,7 @@ with col1:
                 st.session_state["pdf_parametros"] = (int(cestas_desejadas), float(orcamento), time.strftime("%d/%m/%Y"))
                 st.rerun()
             except Exception as e:
-                st.error(f"Erro ao gerar PDF: {e}")
+                st.error("Erro ao gerar PDF. Tente novamente.")
     else:
         st.download_button(
             "Baixar PDF pronto", st.session_state["pdf_bytes"], "lista_compras.pdf",
@@ -167,7 +167,7 @@ with col2:
             flash("Cálculo salvo no histórico!")
             st.rerun()
         except Exception as e:
-            st.error(f"Erro ao salvar cálculo: {e}")
+            st.error("Erro ao salvar calculo. Tente novamente.")
 
 # Limpar
 with col3:

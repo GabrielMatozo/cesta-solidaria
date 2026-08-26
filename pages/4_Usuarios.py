@@ -40,7 +40,7 @@ profiles = carregar_usuarios(token)
 st.markdown("### Usuários Cadastrados")
 
 if not profiles:
-    st.info("Nenhum usuário além de você.")
+    st.info("Nenhum usuario alem de voce.")
 else:
     for p in profiles:
         nome = p.get("nome") or "Sem nome"
@@ -75,14 +75,14 @@ if alvo_exclusao:
     ):
         try:
             db.excluir_usuario(alvo_exclusao["id"], user["access_token"])
-            flash(f"Usuário {nome_alvo} excluído")
+            flash(f"Usuario {nome_alvo} excluido")
             st.cache_data.clear()
             st.rerun()
         except Exception as e:
             if "propria conta" in str(e):
-                st.error("Você não pode excluir a própria conta.")
+                st.error("Nao e possivel excluir sua propria conta.")
             else:
-                st.error(f"Erro ao excluir usuário: {e}")
+                st.error(f"Erro ao excluir usuario: {e}")
 
 # ===== CRIAR NOVO USUÁRIO =====
 st.divider()
@@ -109,7 +109,7 @@ with st.form("novo_usuario_form"):
                 try:
                     # criação via RPC admin (JWT do administrador logado)
                     db.criar_usuario(email, senha, nome, is_admin, user["access_token"])
-                    flash(f"Usuário {nome} criado!")
+                    flash(f"Usuario {nome} criado!")
                     st.cache_data.clear()
                     st.rerun()
                 except Exception as e:
@@ -120,8 +120,8 @@ with st.form("novo_usuario_form"):
                             corpo = str(resp_obj.json().get("message", "")).lower()
                     msg = (str(e) + " " + corpo).lower()
                     if "duplicate key" in msg or "already registered" in msg or "already exists" in msg:
-                        st.error("Este email já está cadastrado.")
+                        st.error("Email ja cadastrado.")
                     elif "apenas administradores" in msg:
-                        st.error("Somente administradores podem criar usuários.")
+                        st.error("Somente administradores podem criar usuarios.")
                     else:
-                        st.error(f"Erro ao criar usuário: {e}")
+                        st.error(f"Erro ao criar usuario: {e}")

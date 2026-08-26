@@ -28,7 +28,7 @@ try:
         "preco_stale_dias": db.get_config("preco_stale_dias", token),
     }
 except Exception as e:
-    st.error(f"Erro ao carregar configurações: {e}")
+    st.error("Erro ao carregar configuracoes.")
     st.stop()
 
 # ===== REGIOES PRE-CONFIGURADAS =====
@@ -95,7 +95,7 @@ escolha_rid = opcoes_regiao[escolha_chave]
 if st.button("Salvar região ativa"):
     db.set_config("tenda_region_id", escolha_rid, token)
     st.cache_data.clear()
-    flash(f"Região salva: {escolha_chave}")
+    flash(f"Regiao salva: {escolha_chave}")
     st.rerun()
 
 # ===== ADICIONAR REGIÃO MANUAL =====
@@ -115,7 +115,7 @@ with st.expander("Adicionar região manualmente"):
                     token,
                 )
                 st.cache_data.clear()
-                flash(f"Região {novo_nome} adicionada!")
+                flash(f"Regiao {novo_nome} adicionada!")
                 st.rerun()
             except Exception as e:
                 st.error(f"Erro ao adicionar região: {e}")
@@ -190,9 +190,9 @@ with col1:
                         atualizados += 1
                     except Exception as e:
                         erros += 1
-                        st.warning(f"Erro em {prod['nome']}: {e}")
+                        st.warning(f"Erro ao atualizar {prod['nome']}. Pulando...")
                     barra.progress((i + 1) / len(com_token))
-                st.success(f"Scraper concluído: {atualizados} atualizados, {erros} erros.")
+                st.success(f"Scraper concluido: {atualizados} atualizados, {erros} erros.")
             st.cache_data.clear()
 
 with col2:
@@ -215,7 +215,7 @@ with col2:
                 "application/json",
                 width='stretch',
             )
-            st.success("Backup pronto para download (tabela profiles excluída).")
+            st.success("Backup pronto para download.")
 
 with col3:
     if st.button("Popular Dados Iniciais (Seed)", type="secondary", width='stretch'):
@@ -232,7 +232,7 @@ with col3:
                 if db.get_config("tenda_region_id", token) is None:
                     db.set_config("tenda_region_id", config.TENDA_REGION_DEFAULT, token)
             except Exception as e:
-                st.warning(f"Aviso ao configurar região padrão: {e}")
+                st.warning("Erro ao configurar regiao padrao.")
 
             import os
             csv_path = "seed/produtos_initial.csv"
@@ -259,7 +259,7 @@ with col3:
                     # (estoque/preço) de produtos que já existem no banco.
                     db.upsert_produtos(rows, token, ignore_duplicates=True)
                     st.cache_data.clear()
-                    flash(f"Seed concluído: {len(rows)} produtos importados (existentes preservados).")
+                    flash(f"Seed concluido: {len(rows)} produtos importados.")
                     st.rerun()
                 except Exception as e:
                     st.error(f"Erro no seed: {e}")
@@ -330,4 +330,4 @@ if "token_discovery_result" in st.session_state:
         st.markdown("### Tokens Encontrados")
         for item in result["tokens_encontrados"]:
             st.write(f"- **{item['nome']}**: `{item['token']}`")
-    st.success(f"Descoberta concluída: {result['atualizados']} tokens encontrados, {result['erros']} sem resultado.")
+    st.success(f"Descoberta concluida: {result['atualizados']} tokens encontrados, {result['erros']} sem resultado.")

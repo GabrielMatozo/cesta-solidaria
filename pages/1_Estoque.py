@@ -78,7 +78,7 @@ with st.spinner("Carregando produtos..."):
     df = pd.DataFrame(carregar_produtos(token))
 
 if df.empty:
-    st.info("Nenhum produto cadastrado. Use o formulario abaixo para adicionar o primeiro.")
+    st.info("Nenhum produto cadastrado. Use o formulario abaixo para criar o primeiro.")
     formulario_novo_produto()
     st.stop()
 
@@ -187,7 +187,7 @@ if st.session_state.get("show_import"):
                 if not diff["novos"] and not diff["alterados"]:
                     st.info("Nenhuma alteração detectada.")
                 else:
-                    st.warning(f"**{len(diff['novos'])} novos produtos**, **{len(diff['alterados'])} alterações**")
+                    st.warning(f"**{len(diff['novos'])} novos produtos**, **{len(diff['alterados'])} alteracoes**")
                     if diff["alterados"]:
                         with st.expander("Ver alterações"):
                             for alt in diff["alterados"]:
@@ -221,7 +221,7 @@ if not desat_df.empty:
         f"{r['nome']} ({config.formatar_data_hora(r.get('ultima_atualizacao_preco'))})"
         for _, r in desat_df.head(5).iterrows()
     )
-    st.warning(f"**Atenção:** {len(desat_df)} produto(s) com preço desatualizado: {resumo}{'...' if len(desat_df) > 5 else ''}")
+    st.warning(f"**{len(desat_df)} produto(s) com preco desatualizado:** {resumo}{'...' if len(desat_df) > 5 else ''}")
 
 # ===== FORMULÁRIO NOVO PRODUTO =====
 formulario_aberto = bool(st.session_state.get("show_new_form"))
