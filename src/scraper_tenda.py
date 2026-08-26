@@ -23,7 +23,6 @@ import requests
 
 from src import config as _config
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 log = logging.getLogger(__name__)
 
 # =============================================================================

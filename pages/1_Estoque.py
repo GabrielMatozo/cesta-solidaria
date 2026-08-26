@@ -106,7 +106,7 @@ st.markdown("### Editar Estoque")
 st.caption("Altere estoque e quantidade por cesta. Clique em Salvar para confirmar.")
 
 edit_df = df[["id", "nome", "unidade", "qtd_por_cesta", "estoque_atual"]].copy()
-edit_df["qtd_por_cesta"] = edit_df["qtd_por_cesta"].astype(int)
+edit_df["qtd_por_cesta"] = edit_df["qtd_por_cesta"].fillna(0).astype(int)
 edit_df["estoque_atual"] = edit_df["estoque_atual"].astype(float)
 
 edited = st.data_editor(
@@ -194,12 +194,15 @@ if st.session_state.get("show_import"):
                                 st.write(f"- {alt['produto']}: {alt['campo']} {alt['de']} -> {alt['para']}")
                     if st.button("Aplicar importação", type="primary", width='stretch'):
                         # CSV sem coluna id = tudo novo (bigserial resolve)
-                        colunas_import = (["id"] if "id" in novo.columns else []) + [
-                            "nome", "marca", "unidade", "qtd_por_cesta",
+                        colunas_import = ["id", "nome", "marca", "unidade", "qtd_por_cesta",
                             "estoque_atual", "preco_atual", "token_tenda",
                             "url_tenda", "termo_busca", "ativo",
                         ]
-                        rows = novo[colunas_import].to_dict("records")
+                        for col in colunas_import:
+                            if col not in novo.columns:
+                                novo[col] = None
+                        cols = [c for c in colunas_import if c in novo.columns or c == "id"]
+                        rows = novo[cols].to_dict("records")
                         rows = estoque.limpar_nan(rows)
                         rows = [{k: v for k, v in r.items() if not (k == "id" and v is None)} for r in rows]
                         try:

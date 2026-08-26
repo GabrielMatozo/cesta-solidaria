@@ -95,7 +95,7 @@ if faltando.empty:
     st.stop()
 
 # Renomear colunas para compatibilidade com o UI
-faltando = faltando.rename(columns={"nome": "produto", "marca": "marca"})
+faltando = faltando.rename(columns={"nome": "produto"})
 
 # Formatar para exibição
 faltando_display = faltando.copy()
@@ -105,12 +105,12 @@ faltando_display["custo_reposicao_fmt"] = faltando_display["custo_reposicao"].ap
 total = sum(faltando["custo_reposicao"])
 st.metric("Total da compra", f"R$ {total:.2f}")
 
-st.dataframe(
+st.data_editor(
     faltando_display[["produto", "unidade", "estoque_atual", "qtd_por_cesta", "faltando", "preco_atual_fmt", "custo_reposicao_fmt"]].rename(columns={
         "produto": "Produto", "unidade": "Unid.", "estoque_atual": "Estoque",
         "qtd_por_cesta": "Qtd/Cesta", "faltando": "Comprar", "preco_atual_fmt": "Preço Unit.", "custo_reposicao_fmt": "Custo"
     }),
-    width='stretch', hide_index=True,
+    width='stretch', hide_index=True, disabled=True,
     column_config={
         "Comprar": st.column_config.NumberColumn("Comprar", format="%.1f"),
     }

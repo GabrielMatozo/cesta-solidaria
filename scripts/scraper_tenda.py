@@ -49,7 +49,7 @@ def main() -> int:
                     slug_vencedor = vencedor.slug
                     marca_vencedora = vencedor.marca or ""
                 else:
-                    resultado = cliente.buscar_preco_produto(prod["token_tanda"], region_id)
+                    resultado = cliente.buscar_preco_produto(prod["token_tenda"], region_id)
                     preco = resultado["preco"]
             except Exception as err:
                 falhas += 1
@@ -81,10 +81,9 @@ def main() -> int:
     if historico:
         db.inserir_precos_historico(historico, service=True)
     if atualizados:
-        db.upsert_produtos(atualizados, None, service=True)
+        db.atualizar_produtos(atualizados, None, service=True)
     if vencedores:
-        # Aponta cada produto para a marca vencedora de hoje.
-        db.upsert_produtos(vencedores, None, service=True)
+        db.atualizar_produtos(vencedores, None, service=True)
 
     # Resumo diario do custo da cesta (itens ativos, marcas vencedoras)
     catalogo = db.listar_produtos(None, service=True)

@@ -187,13 +187,6 @@ with col1:
                             "ultima_atualizacao_preco": agora
                         }
                         db.upsert_produtos([upsert_data], token)
-                        if prod.get("termo_busca"):
-                            db.atualizar_produtos([{
-                                "id": prod["id"],
-                                "token_tenda": slug_dia,
-                                "url_tenda": f"https://www.tendaatacado.com.br/produto/{slug_dia}",
-                                "marca": marca_dia,
-                            }], token)
                         atualizados += 1
                     except Exception as e:
                         erros += 1
@@ -302,6 +295,7 @@ if st.button("Descobrir Tokens Tenda", type="secondary", width='stretch'):
                             "preco_atual": prod.get("preco_atual"),
                             "token_tenda": token_tenda,
                             "url_tenda": prod.get("url_tenda"),
+                            "termo_busca": prod.get("termo_busca"),
                             "ativo": prod.get("ativo", True),
                             "ultima_atualizacao_preco": None
                         }
