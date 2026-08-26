@@ -46,7 +46,7 @@ def listar_desatualizados(df, dias: int):
             r.get("ultima_atualizacao_preco"), dias
         ):
             linhas.append(r)
-    return pd.DataFrame(linhas) if linhas else []
+    return pd.DataFrame(linhas) if linhas else pd.DataFrame()
 
 
 def html_block(raw: str) -> str:
