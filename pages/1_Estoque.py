@@ -112,7 +112,6 @@ edit_df["estoque_atual"] = edit_df["estoque_atual"].astype(float)
 edited = st.data_editor(
     edit_df,
     column_config={
-        "id": st.column_config.NumberColumn("id", disabled=True, visible=False),
         "nome": st.column_config.TextColumn("Produto", disabled=True),
         "unidade": st.column_config.TextColumn("Unid.", disabled=True),
         "qtd_por_cesta": st.column_config.NumberColumn("Qtd/Cesta", format="%.0f", min_value=0, step=1),
