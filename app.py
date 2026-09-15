@@ -1,12 +1,14 @@
-import traceback
-
 import streamlit as st
 
 try:
     from src.ui import carregar_logo_b64, load_css
-except Exception as e:
-    st.error(f"Erro ao importar modulos: {e}")
-    st.code(traceback.format_exc())
+except Exception as erro:
+    try:
+        from src.boot import mensagem_erro_boot
+
+        st.error(mensagem_erro_boot(erro))
+    except Exception:
+        st.error("Falha ao iniciar o app. Tente recarregar a pagina.")
     st.stop()
 
 favicon_b64 = carregar_logo_b64()
