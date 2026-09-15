@@ -1,4 +1,5 @@
 import json
+import traceback
 from datetime import UTC, datetime
 
 import streamlit as st
@@ -189,8 +190,9 @@ with col1:
                         db.upsert_produtos([upsert_data], token)
                         atualizados += 1
                     except Exception:
+                        traceback.print_exc()
                         erros += 1
-                        st.warning(f"Erro ao atualizar {prod['nome']}. Pulando...")
+                        st.warning(f"Erro ao atualizar {prod.get('nome', '?')}. Pulando...")
                     barra.progress((i + 1) / len(com_token))
                 st.success(f"Scraper concluido: {atualizados} atualizados, {erros} erros.")
             st.cache_data.clear()
@@ -232,6 +234,7 @@ with col3:
                 if db.get_config("tenda_region_id", token) is None:
                     db.set_config("tenda_region_id", config.TENDA_REGION_DEFAULT, token)
             except Exception:
+                traceback.print_exc()
                 st.warning("Erro ao configurar regiao padrao.")
 
             import os

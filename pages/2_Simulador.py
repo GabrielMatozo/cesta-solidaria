@@ -1,5 +1,6 @@
 import json
 import time
+import traceback
 
 import pandas as pd
 import streamlit as st
@@ -139,6 +140,7 @@ with col1:
                 st.session_state["pdf_parametros"] = (int(cestas_desejadas), float(orcamento), time.strftime("%d/%m/%Y"))
                 st.rerun()
             except Exception:
+                traceback.print_exc()
                 st.error("Erro ao gerar PDF. Tente novamente.")
     else:
         st.download_button(
@@ -167,6 +169,7 @@ with col2:
             flash("Cálculo salvo no histórico!")
             st.rerun()
         except Exception:
+            traceback.print_exc()
             st.error("Erro ao salvar calculo. Tente novamente.")
 
 # Limpar
