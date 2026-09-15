@@ -100,9 +100,13 @@ def avatar(nome: str, size: str = "md") -> str:
     return f'<div class="avatar avatar-{html.escape(size)}">{iniciais}</div>'
 
 
+_VARIANTES_BADGE = frozenset({"neutral", "primary", "success", "warning", "error", "info"})
+
+
 def badge(text: str, variant: str = "neutral") -> str:
     """Gera HTML para badge."""
-    return f'<span class="badge badge-{variant}">{html.escape(str(text))}</span>'
+    seguro = variant if variant in _VARIANTES_BADGE else "neutral"
+    return f'<span class="badge badge-{seguro}">{html.escape(str(text))}</span>'
 
 
 _STAT_ICONS = {
