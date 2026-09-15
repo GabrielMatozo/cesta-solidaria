@@ -138,7 +138,7 @@ with col1:
                 st.session_state["pdf_bytes"] = pdf.gerar_pdf_lista_compras(itens_pdf, total, time.strftime("%d/%m/%Y %H:%M"))
                 st.session_state["pdf_parametros"] = (int(cestas_desejadas), float(orcamento), time.strftime("%d/%m/%Y"))
                 st.rerun()
-            except Exception as e:
+            except Exception:
                 st.error("Erro ao gerar PDF. Tente novamente.")
     else:
         st.download_button(
@@ -166,7 +166,7 @@ with col2:
             st.cache_data.clear()
             flash("Cálculo salvo no histórico!")
             st.rerun()
-        except Exception as e:
+        except Exception:
             st.error("Erro ao salvar calculo. Tente novamente.")
 
 # Limpar

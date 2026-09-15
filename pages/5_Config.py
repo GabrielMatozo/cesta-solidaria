@@ -27,7 +27,7 @@ try:
         "tenda_region_id": db.get_config("tenda_region_id", token),
         "preco_stale_dias": db.get_config("preco_stale_dias", token),
     }
-except Exception as e:
+except Exception:
     st.error("Erro ao carregar configuracoes.")
     st.stop()
 
@@ -188,7 +188,7 @@ with col1:
                         }
                         db.upsert_produtos([upsert_data], token)
                         atualizados += 1
-                    except Exception as e:
+                    except Exception:
                         erros += 1
                         st.warning(f"Erro ao atualizar {prod['nome']}. Pulando...")
                     barra.progress((i + 1) / len(com_token))
@@ -231,7 +231,7 @@ with col3:
                     }], token)
                 if db.get_config("tenda_region_id", token) is None:
                     db.set_config("tenda_region_id", config.TENDA_REGION_DEFAULT, token)
-            except Exception as e:
+            except Exception:
                 st.warning("Erro ao configurar regiao padrao.")
 
             import os
