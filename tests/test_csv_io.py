@@ -60,6 +60,13 @@ def test_validar_csv_id_duplicado():
     assert any("duplicado" in e for e in erros)
 
 
+def test_validar_csv_texto_nao_numerico_em_qtd():
+    df = _df()
+    df["qtd_por_cesta"] = df["qtd_por_cesta"].astype(object)
+    df.loc[0, "qtd_por_cesta"] = ""
+    assert any("qtd_por_cesta deve ser numerica" in e for e in csv_io.validar_csv(df))
+
+
 def test_diff_importacao():
     atual = _df()
     novo = pd.DataFrame([

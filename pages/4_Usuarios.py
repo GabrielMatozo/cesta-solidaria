@@ -1,4 +1,5 @@
 import contextlib
+import html
 
 import streamlit as st
 
@@ -51,8 +52,8 @@ else:
         with col1:
             st.markdown(avatar(nome, "sm"), unsafe_allow_html=True)
         with col2:
-            st.write(f"**{nome}**")
-            st.caption(email)
+            st.write(f"**{html.escape(str(nome))}**")
+            st.caption(html.escape(str(email)))
         with col3:
             role = "Administrador" if p.get("is_admin") else "Voluntário"
             st.markdown(badge(role, "primary" if p.get("is_admin") else "neutral"), unsafe_allow_html=True)

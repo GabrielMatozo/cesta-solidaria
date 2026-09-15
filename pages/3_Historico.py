@@ -1,3 +1,4 @@
+import html
 import json
 
 import pandas as pd
@@ -46,7 +47,7 @@ df = pd.DataFrame(compras)
 df["itens_lista"] = df["itens"].apply(parse_itens)
 df["data_exibicao"] = df["data"].apply(lambda x: config.formatar_data_hora(x) if x else "-")
 df["valor_familia"] = df.apply(
-    lambda r: r["total"] / r["num_cestas"] if r.get("num_cestas", 0) > 0 else 0, axis=1
+    lambda r: float(r.get("total") or 0) / float(r.get("num_cestas") or 0) if (r.get("num_cestas") or 0) > 0 else 0, axis=1
 )
 
 # ===== FILTROS =====
@@ -85,14 +86,18 @@ df_filtrado = df_filtrado.sort_values(col, ascending=asc).reset_index(drop=True)
 st.markdown(f"### Compras ({len(df_filtrado)} registros)")
 
 for _, compra in df_filtrado.iterrows():
-    with st.expander(f"{compra['num_cestas']} cestas - {compra['data_exibicao']} - R$ {compra['total']:.2f} - R$ {compra['valor_familia']:.2f}/família"):
+    n_cestas = compra.get("num_cestas") or 0
+    data_exibicao = html.escape(str(compra.get("data_exibicao") or "-"))
+    total = float(compra.get("total") or 0)
+    valor_familia = float(compra.get("valor_familia") or 0)
+    with st.expander(f"{n_cestas} cestas - {data_exibicao} - R$ {total:.2f} - R$ {valor_familia:.2f}/família"):
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("Cestas", compra["num_cestas"])
+            st.metric("Cestas", n_cestas)
         with col2:
-            st.metric("Valor/Família", f"R$ {compra['valor_familia']:.2f}")
+            st.metric("Valor/Família", f"R$ {valor_familia:.2f}")
         with col3:
-            st.metric("Total", f"R$ {compra['total']:.2f}")
+            st.metric("Total", f"R$ {total:.2f}")
 
         # Itens
         itens = compra.get("itens_lista")

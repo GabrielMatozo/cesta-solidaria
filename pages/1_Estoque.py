@@ -106,7 +106,7 @@ st.markdown("### Editar Estoque")
 st.caption("Altere estoque e quantidade por cesta. Clique em Salvar para confirmar.")
 
 edit_df = df[["id", "nome", "unidade", "qtd_por_cesta", "estoque_atual"]].copy()
-edit_df["qtd_por_cesta"] = pd.to_numeric(edit_df["qtd_por_cesta"], errors="coerce").fillna(0).astype(int)
+edit_df["qtd_por_cesta"] = pd.to_numeric(edit_df["qtd_por_cesta"], errors="coerce").fillna(0).astype(float)
 edit_df["estoque_atual"] = pd.to_numeric(edit_df["estoque_atual"], errors="coerce").fillna(0).astype(float)
 
 edited = st.data_editor(
@@ -114,7 +114,7 @@ edited = st.data_editor(
     column_config={
         "nome": st.column_config.TextColumn("Produto", disabled=True),
         "unidade": st.column_config.TextColumn("Unid.", disabled=True),
-        "qtd_por_cesta": st.column_config.NumberColumn("Qtd/Cesta", format="%.0f", min_value=0, step=1),
+        "qtd_por_cesta": st.column_config.NumberColumn("Qtd/Cesta", format="%.1f", min_value=0, step=0.5),
         "estoque_atual": st.column_config.NumberColumn("Estoque", format="%.1f", min_value=0.0, step=1.0),
     },
     disabled=["id", "nome", "unidade"],
@@ -137,7 +137,7 @@ if st.button("Salvar Alteracoes", type="primary", width='stretch'):
             patch = {"id": int(prod_id)}
             for col in ["qtd_por_cesta", "estoque_atual"]:
                 if col in diff.columns.get_level_values(0):
-                    patch[col] = int(row[col]) if col == "qtd_por_cesta" else float(row[col])
+                    patch[col] = float(row[col])
             alterados.append(patch)
         try:
             db.atualizar_produtos(alterados, token)

@@ -1,5 +1,6 @@
 import html
 import time
+import traceback
 
 import streamlit as st
 
@@ -43,13 +44,14 @@ def carregar_dashboard(user_id, _token):
 with st.spinner("Carregando dashboard..."):
     try:
         produtos, compras, regioes, regiao_ativa, dias_stale, compras_mes = carregar_dashboard(user["user_id"], token)
-    except Exception as e:
-        st.error(f"Erro ao carregar dados: {e}")
+    except Exception:
+        traceback.print_exc()
+        st.error("Erro ao carregar dados.")
         st.stop()
 
 # ===== CALCULAR ESTATISTICAS =====
 total_produtos = len(produtos)
-estoque_baixo = sum(1 for p in produtos if p.get("estoque_atual", 0) <= p.get("qtd_por_cesta", 1) * 2 and p.get("ativo"))
+estoque_baixo = sum(1 for p in produtos if (p.get("estoque_atual") or 0) <= (p.get("qtd_por_cesta") or 0) * 2 and p.get("ativo"))
 sem_token = sum(1 for p in produtos if not p.get("token_tenda") and p.get("ativo"))
 precos_velhos = 0
 for p in produtos:
@@ -136,9 +138,9 @@ for s in sugestoes:
 if compras:
     st.markdown("### Últimas Compras")
     for c in compras[:5]:
-        data = c.get("data", "")[:16].replace("T", " ")
-        total = c.get("total", 0)
-        n_cestas = c.get("num_cestas", 0)
+        data = html.escape(str(c.get("data") or "")[:16].replace("T", " "))
+        total = float(c.get("total") or 0)
+        n_cestas = c.get("num_cestas") or 0
         st.markdown(html_block(f"""
         <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;margin:8px 0;">
             <div><strong>{n_cestas} cestas</strong> - {data}</div>
