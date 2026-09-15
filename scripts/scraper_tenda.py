@@ -8,6 +8,17 @@ from src import config, db
 from src import scraper_tenda as scraper
 
 
+def deve_falhar(falhas: int, atualizados: int, total: int) -> bool:
+    """Exit 1 quando mais da metade dos produtos com token falhar.
+
+    Falhas superam atualizados e ha pelo menos 1 produto com token;
+    sem com_token ou com maioria atualizada, exit 0.
+    """
+    if total <= 0:
+        return False
+    return falhas > atualizados
+
+
 def main() -> int:
     region_id = db.get_config("tenda_region_id", None, service=True) or config.TENDA_REGION_DEFAULT
     produtos = db.listar_produtos(None, service=True)
@@ -111,8 +122,9 @@ def main() -> int:
         f"Atualizados {len(atualizados)} de {len(com_token)} produtos. "
         f"Falhas: {falhas}. Sem match de peso: {sem_match}"
     )
-    # Falha unitaria transitoria nao deve abrir issue; so falha total.
-    return 0 if atualizados else (1 if com_token else 0)
+    # Degradacao parcial (mais da metade com falha) abre issue no workflow,
+    # que so alerta em failure; falha unitaria transitoria segue exit 0.
+    return 1 if deve_falhar(falhas, len(atualizados), len(com_token)) else 0
 
 
 if __name__ == "__main__":

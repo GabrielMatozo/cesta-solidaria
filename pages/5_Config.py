@@ -245,9 +245,11 @@ with col3:
                 traceback.print_exc()
                 st.warning("Erro ao configurar regiao padrao.")
 
-            import os
-            csv_path = "seed/produtos_initial.csv"
-            if not os.path.exists(csv_path):
+            from pathlib import Path
+            csv_path = Path(__file__).resolve().parent.parent / "seed" / "produtos_initial.csv"
+            if not csv_path.exists():
+                csv_path = Path.cwd() / "seed" / "produtos_initial.csv"
+            if not csv_path.exists():
                 st.error(f"Arquivo não encontrado: {csv_path}")
             else:
                 with open(csv_path, encoding="utf-8") as f:
