@@ -88,6 +88,9 @@ def load_css():
             pass  # Silencioso: CSS opcional, app funciona sem ele
 
 
+_TAMANHOS_AVATAR = frozenset({"sm", "md"})
+
+
 def avatar(nome: str, size: str = "md") -> str:
     """Gera HTML para iniciais do nome (sem avatar)."""
     if not nome:
@@ -97,7 +100,8 @@ def avatar(nome: str, size: str = "md") -> str:
     else:
         iniciais = "".join(p[0].upper() for p in nome.split()[:2])
     iniciais = html.escape(iniciais)
-    return f'<div class="avatar avatar-{html.escape(size)}">{iniciais}</div>'
+    seguro = size if size in _TAMANHOS_AVATAR else "md"
+    return f'<div class="avatar avatar-{seguro}">{iniciais}</div>'
 
 
 _VARIANTES_BADGE = frozenset({"neutral", "primary", "success", "warning", "error", "info"})
