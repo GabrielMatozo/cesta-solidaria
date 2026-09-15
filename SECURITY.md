@@ -2,7 +2,7 @@
 
 ## Reportar vulnerabilidade
 
-Envie email para o mantenedor com titulo iniciando por RELATO SEGURANCA, descricao do impacto, passos de reproducao e versao ou commit afetado. Nao abra issue publica com exploit funcional antes da correcao.
+Abra um reporte privado na aba Security do repositorio via Report a vulnerability com titulo iniciando por RELATO SEGURANCA, descricao do impacto, passos de reproducao e versao ou commit afetado. Nao abra issue publica com exploit funcional antes da correcao.
 
 ## Escopo
 
