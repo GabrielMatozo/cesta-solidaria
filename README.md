@@ -110,7 +110,7 @@ cesta-solidaria/
 │   ├── 0_Dashboard.py          # Stats, alertas, ações rápidas
 │   ├── 1_Estoque.py            # CRUD produtos + CSV
 │   ├── 2_Simulador.py          # Simulação + PDF download
-│   ├── 3_Historico.py          # Histórico + gráficos Plotly
+│   ├── 3_Historico.py          # Histórico + gráficos line_chart nativo
 │   ├── 4_Usuarios.py           # Admin: usuários/roles
 │   └── 5_Config.py             # Admin: regiões, thresholds, ações
 ├── src/
@@ -131,7 +131,7 @@ cesta-solidaria/
 ├── .github/workflows/
 │   ├── update-prices.yml       # Cron diário + alerta falha
 │   └── backup-db.yml           # Cron semanal + alerta falha
-├── seed/produtos_initial.csv   # 26 produtos base (sem token_tenda)
+├── seed/produtos_initial.csv   # 26 produtos base (com token_tenda e termo_busca)
 ├── assets/
 │   ├── style.css               # Design system (variáveis, tema)
 │   └── cesta.png               # Logo/favicon
