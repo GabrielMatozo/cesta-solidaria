@@ -56,6 +56,22 @@ def test_stat_card_badge_valido_passa():
     assert '<span class="badge badge-warning">' in out
 
 
+def test_badge_html_seguro_onclick_cai_para_escapado():
+    mal = '<span class="badge badge-primary" onclick="alert(1)">x</span>'
+    out = ui._badge_html_seguro(mal)
+    assert "<span" not in out
+    assert "&lt;span" in out
+
+
+def test_badge_html_seguro_badge_valido_passa_cru():
+    bom = ui.badge("3 itens", "warning")
+    assert ui._badge_html_seguro(bom) == bom
+
+
+def test_badge_html_seguro_vazio_segue_vazio():
+    assert ui._badge_html_seguro("") == ""
+
+
 def test_listar_desatualizados_ignora_token_nan():
     import pandas as pd
 

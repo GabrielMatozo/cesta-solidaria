@@ -131,13 +131,16 @@ def _badge_html_seguro(badge_html: str) -> str:
     if not badge_html:
         return ""
     s = str(badge_html).strip()
-    if (
-        s.startswith('<span class="badge badge-')
-        and s.endswith("</span>")
-        and s.count("<") == 2
-        and s.count(">") == 2
-    ):
-        return str(badge_html)
+    prefixo = '<span class="badge badge-'
+    sufixo = "</span>"
+    if s.startswith(prefixo) and s.endswith(sufixo):
+        resto = s[len(prefixo):]
+        fim_variante = resto.find('">')
+        if fim_variante != -1:
+            variante = resto[:fim_variante]
+            texto = resto[fim_variante + 2:-len(sufixo)]
+            if variante in _VARIANTES_BADGE and "<" not in texto and ">" not in texto:
+                return s
     return html.escape(str(badge_html))
 
 
