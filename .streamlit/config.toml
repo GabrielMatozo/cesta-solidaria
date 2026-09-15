@@ -25,7 +25,8 @@ postScriptGC = true
 [client]
 toolbarMode = "minimal"
 showErrorDetails = false
-showSidebarNavigation = true
+# Sidebar nativa oculta (app renderiza a propria); acesso direto por URL segue protegido por require_login.
+showSidebarNavigation = false
 
 [logger]
 level = "info"

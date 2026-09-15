@@ -94,10 +94,14 @@ escolha_chave = st.selectbox(
 escolha_rid = opcoes_regiao[escolha_chave]
 
 if st.button("Salvar região ativa"):
-    db.set_config("tenda_region_id", escolha_rid, token)
-    st.cache_data.clear()
-    flash(f"Regiao salva: {escolha_chave}")
-    st.rerun()
+    try:
+        db.set_config("tenda_region_id", escolha_rid, token)
+        st.cache_data.clear()
+        flash(f"Regiao salva: {escolha_chave}")
+        st.rerun()
+    except Exception:
+        traceback.print_exc()
+        st.error("Erro ao salvar regiao. Tente novamente.")
 
 # ===== ADICIONAR REGIÃO MANUAL =====
 with st.expander("Adicionar região manualmente"):
@@ -131,9 +135,13 @@ dias_input = st.number_input(
     value=int(config_atual['preco_stale_dias'] or config.PRECO_STALE_DIAS_DEFAULT),
 )
 if st.button("Salvar limite de dias"):
-    db.set_config("preco_stale_dias", str(dias_input), token)
-    st.cache_data.clear()
-    st.success("Limite salvo!")
+    try:
+        db.set_config("preco_stale_dias", str(dias_input), token)
+        st.cache_data.clear()
+        st.success("Limite salvo!")
+    except Exception:
+        traceback.print_exc()
+        st.error("Erro ao salvar limite. Tente novamente.")
 
 st.divider()
 st.markdown("### Ações administrativas")
@@ -237,9 +245,11 @@ with col3:
                 traceback.print_exc()
                 st.warning("Erro ao configurar regiao padrao.")
 
-            import os
-            csv_path = "seed/produtos_initial.csv"
-            if not os.path.exists(csv_path):
+            from pathlib import Path
+            csv_path = Path(__file__).resolve().parent.parent / "seed" / "produtos_initial.csv"
+            if not csv_path.exists():
+                csv_path = Path.cwd() / "seed" / "produtos_initial.csv"
+            if not csv_path.exists():
                 st.error(f"Arquivo não encontrado: {csv_path}")
             else:
                 with open(csv_path, encoding="utf-8") as f:

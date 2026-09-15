@@ -21,17 +21,17 @@ def carregar_logo_b64() -> str:
 
 
 @st.cache_data(ttl=10)
-def carregar_produtos_cached(token):
+def carregar_produtos_cached(user_id, _token):
     """Produtos ativos para as paginas de estoque/simulador."""
     from src import db
-    return db.listar_produtos(token)
+    return db.listar_produtos(_token)
 
 
 @st.cache_data(ttl=60)
-def carregar_dias_stale_cached(token):
+def carregar_dias_stale_cached(user_id, _token):
     """Threshold de dias para preco desatualizado (config do banco)."""
     from src import config, db
-    return int(db.get_config("preco_stale_dias", token) or config.PRECO_STALE_DIAS_DEFAULT)
+    return int(db.get_config("preco_stale_dias", _token) or config.PRECO_STALE_DIAS_DEFAULT)
 
 
 def listar_desatualizados(df, dias: int):
@@ -42,8 +42,13 @@ def listar_desatualizados(df, dias: int):
 
     linhas = []
     for _, r in df.iterrows():
-        if r.get("token_tenda") and config.preco_desatualizado(
-            r.get("ultima_atualizacao_preco"), dias
+        token = r.get("token_tenda")
+        if (
+            pd.notna(token)
+            and token
+            and config.preco_desatualizado(
+                r.get("ultima_atualizacao_preco"), dias
+            )
         ):
             linhas.append(r)
     return pd.DataFrame(linhas) if linhas else pd.DataFrame()
@@ -121,6 +126,24 @@ _STAT_ICONS = {
 }
 
 
+def _badge_html_seguro(badge_html: str) -> str:
+    """Mantem HTML so se for badge gerado pelo modulo; senao escapa."""
+    if not badge_html:
+        return ""
+    s = str(badge_html).strip()
+    prefixo = '<span class="badge badge-'
+    sufixo = "</span>"
+    if s.startswith(prefixo) and s.endswith(sufixo):
+        resto = s[len(prefixo):]
+        fim_variante = resto.find('">')
+        if fim_variante != -1:
+            variante = resto[:fim_variante]
+            texto = resto[fim_variante + 2:-len(sufixo)]
+            if variante in _VARIANTES_BADGE and "<" not in texto and ">" not in texto:
+                return s
+    return html.escape(str(badge_html))
+
+
 def stat_card(label: str, value: str, icon: str, icon_color: str = "green", badge_html: str = "") -> str:
     """Gera HTML para card de estatistica. icon pode ser chave SVG ou caractere."""
     label = html.escape(str(label))
@@ -132,7 +155,8 @@ def stat_card(label: str, value: str, icon: str, icon_color: str = "green", badg
         "red": "stat-icon-red",
     }
     icon_class = icon_colors.get(icon_color, "stat-icon-green")
-    icon_html = _STAT_ICONS.get(icon, icon)
+    icon_html = _STAT_ICONS.get(icon, html.escape(str(icon)))
+    badge_seguro = _badge_html_seguro(badge_html)
 
     return html_block(f"""
     <div class="stat-card">
@@ -140,7 +164,7 @@ def stat_card(label: str, value: str, icon: str, icon_color: str = "green", badg
         <div class="stat-content">
             <div class="stat-value">{value}</div>
             <div class="stat-label">{label}</div>
-            {badge_html}
+            {badge_seguro}
         </div>
     </div>
     """)

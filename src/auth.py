@@ -2,6 +2,7 @@ import base64
 import json
 import time
 
+import requests
 import streamlit as st
 
 from src import db
@@ -27,12 +28,18 @@ def _token_expirado(token: str) -> bool:
 
 def login(email: str, senha: str, lembrar: bool = False) -> bool:
     """Autentica usuário e cria sessão."""
-    dados = db.autenticar(email, senha)
+    try:
+        dados = db.autenticar(email, senha)
+    except requests.RequestException:
+        return False
     if not dados:
         return False
 
     usuario = dados["user"]
-    perfil = db.get_profile(usuario["id"], dados["access_token"])
+    try:
+        perfil = db.get_profile(usuario["id"], dados["access_token"])
+    except Exception:
+        return False
 
     st.session_state["session"] = {
         "access_token": dados["access_token"],
@@ -69,9 +76,8 @@ def _renovar_access_token(session: dict) -> bool:
     return True
 
 
-def is_logged_in() -> bool:
-    """Verifica se usuário está logado e sessão não expirou (app + JWT)."""
-    session = st.session_state.get("session")
+def _sessao_valida(session: dict | None) -> bool:
+    """Verifica validade sem efeito colateral (sem logout, rede ou toast)."""
     if not session:
         return False
 
@@ -81,16 +87,22 @@ def is_logged_in() -> bool:
     max_age = 30 * 24 * 3600 if remember else 24 * 3600
 
     if time.time() - login_time > max_age:
-        logout()
         return False
 
-    # 2) Expiração JWT Supabase (~1h): renova via refresh_token antes de deslogar
+    # 2) Expiração JWT Supabase (~1h): renova via refresh_token antes de invalidar
     token = session.get("access_token")
-    if token and _token_expirado(token) and not _renovar_access_token(session):
-        logout()
-        return False
+    return not (token and _token_expirado(token) and not _renovar_access_token(session))
 
-    return True
+
+def is_logged_in() -> bool:
+    """Verifica se usuário está logado e sessão não expirou (app + JWT)."""
+    session = st.session_state.get("session")
+    if not session:
+        return False
+    if _sessao_valida(session):
+        return True
+    logout()
+    return False
 
 
 def get_user():

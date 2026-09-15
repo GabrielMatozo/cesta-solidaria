@@ -2,9 +2,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.46+-FF4B4B.svg)](https://streamlit.io)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.63.0-FF4B4B.svg)](https://streamlit.io)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E.svg)](https://supabase.com)
-[![Tests](https://img.shields.io/badge/tests-71%20passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-100%20passing-brightgreen.svg)]()
 [![Deploy](https://img.shields.io/badge/Deploy-Streamlit%20Cloud-FF4B4B.svg)](https://streamlit.io/cloud)
 
 Sistema de gestão de cestas básicas para projetos sociais e instituições de caridade. Controle de estoque, simulação de cestas, geração de lista de compras em PDF, histórico de compras e automação de preços via scraping do Tenda Atacado.
@@ -29,12 +29,12 @@ Sistema de gestão de cestas básicas para projetos sociais e instituições de 
 
 | Camada | Tecnologia |
 |--------|------------|
-| **Frontend** | Streamlit 1.46+ (multi-page nativo) |
+| **Frontend** | Streamlit 1.63.0 (multi-page nativo) |
 | **Backend** | Python 3.11+ |
 | **Banco/Auth** | Supabase (PostgreSQL + Auth + RLS) |
 | **Automação** | GitHub Actions (cron diário/semanal) |
 | **Deploy** | Streamlit Community Cloud (gratuito) |
-| **Testes** | pytest (71 testes) |
+| **Testes** | pytest (100 testes) |
 
 ---
 
@@ -135,7 +135,7 @@ cesta-solidaria/
 ├── assets/
 │   ├── style.css               # Design system (variáveis, tema)
 │   └── cesta.png               # Logo/favicon
-└── tests/                      # 71 testes (auth, calc, csv, db, scraper, etc)
+└── tests/                      # 100 testes (auth, calc, csv, db, scraper, etc)
 ```
 
 ---
@@ -202,6 +202,10 @@ sha256sum backup.json
 # o .enc em outro lugar.
 ```
 
+Rotacao da BACKUP_KEY: backups antigos cifrados com a chave antiga so
+abrem com ela, entao guarde cada chave antiga fora do GitHub junto dos
+respectivos .enc. Sem a chave correspondente o asset e irrecuperavel.
+
 Nota: `compras` e legivel por qualquer usuario autenticado (politica
 `select` aberta) - transparencia total entre voluntarios da equipe. Se
 isso nao for desejado, restrinja a politica para `criado_por = auth.uid()`
@@ -216,7 +220,7 @@ ou admin-only.
 git checkout -b feat/nova-funcionalidade
 
 # Código + Testes
-pytest -q  # deve passar 71/71
+pytest -q  # deve passar 100/100
 
 # Commit descritivo (sem prefixos feat:/fix:)
 git commit -m "adicionar exportação XLSX no estoque"

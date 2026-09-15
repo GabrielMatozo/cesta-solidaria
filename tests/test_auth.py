@@ -3,6 +3,8 @@ import json
 import time
 from unittest import mock
 
+import requests
+
 from src import auth
 
 
@@ -144,3 +146,20 @@ def test_logout_revoga_refresh_token():
         auth.logout()
     fake_db.revogar_sessao.assert_called_once_with("tok-x")
     assert "session" not in fake_st.session_state
+
+
+def test_login_retorna_false_em_falha_rede():
+    fake_db = mock.Mock()
+    fake_db.autenticar.side_effect = requests.RequestException("rede")
+    with mock.patch("src.auth.db", fake_db), mock.patch("src.auth.st") as fake_st:
+        fake_st.session_state = {}
+        assert auth.login("a@b.c", "senha") is False
+    assert "session" not in fake_st.session_state
+
+
+def test_is_logged_in_valido_nao_revoga_sessao():
+    recente = time.time() - 3600
+    with mock.patch("src.auth.db") as fake_db, mock.patch("src.auth.st") as fake_st:
+        fake_st.session_state = {"session": _sessao_com_login_time(recente)}
+        assert auth.is_logged_in() is True
+    fake_db.revogar_sessao.assert_not_called()

@@ -27,9 +27,8 @@ def validar_csv(df: pd.DataFrame) -> list[str]:
         erros.append("Existem produtos sem nome")
     for col in ["qtd_por_cesta", "estoque_atual", "preco_atual"]:
         if col in df.columns:
-            try:
-                pd.to_numeric(df[col])
-            except (ValueError, TypeError):
+            coerced = pd.to_numeric(df[col], errors="coerce")
+            if bool((df[col].notna() & coerced.isna()).any()):
                 erros.append(f"Coluna {col} deve ser numerica")
     if "id" in df.columns:
         ids_presentes = df["id"].dropna()

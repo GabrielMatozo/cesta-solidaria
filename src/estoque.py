@@ -22,6 +22,12 @@ def limpar_nan(registros: list[dict]) -> list[dict]:
 
 
 def filtrar(df: pd.DataFrame, texto: str, status: str, dias: int) -> pd.DataFrame:
+    if texto and ("nome" not in df.columns or "marca" not in df.columns):
+        return df
+    if status in ("automático", "manual", "desatualizado") and "token_tenda" not in df.columns:
+        return df
+    if status == "desatualizado" and "ultima_atualizacao_preco" not in df.columns:
+        return df
     out = df.copy()
     if texto:
         mask = (

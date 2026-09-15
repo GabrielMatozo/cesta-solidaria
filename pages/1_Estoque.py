@@ -65,7 +65,7 @@ def formulario_novo_produto():
                     "ativo": ativo, "ultima_atualizacao_preco": None
                 }]
                 try:
-                    db.upsert_produtos(novo, user["access_token"])
+                    db.upsert_produtos(novo, token)
                     flash(f"Produto {nome} criado!")
                     st.session_state["show_new_form"] = False
                     st.cache_data.clear()
@@ -75,7 +75,7 @@ def formulario_novo_produto():
 
 
 with st.spinner("Carregando produtos..."):
-    df = pd.DataFrame(carregar_produtos(token))
+    df = pd.DataFrame(carregar_produtos(user["user_id"], token))
 
 if df.empty:
     st.info("Nenhum produto cadastrado. Use o formulario abaixo para criar o primeiro.")
@@ -97,7 +97,7 @@ with col_d:
     status = st.selectbox("Status do preço", ["todos", "automático", "manual", "desatualizado"], key="estoque_status")
 
 # Aplicar filtros
-dias_stale = carregar_dias_stale(token)
+dias_stale = carregar_dias_stale(user["user_id"], token)
 df_filtrado = estoque.filtrar(df, texto, status, dias_stale)
 df_filtrado = estoque.ordenar(df_filtrado, campo, crescente)
 
@@ -106,7 +106,7 @@ st.markdown("### Editar Estoque")
 st.caption("Altere estoque e quantidade por cesta. Clique em Salvar para confirmar.")
 
 edit_df = df[["id", "nome", "unidade", "qtd_por_cesta", "estoque_atual"]].copy()
-edit_df["qtd_por_cesta"] = pd.to_numeric(edit_df["qtd_por_cesta"], errors="coerce").fillna(0).astype(int)
+edit_df["qtd_por_cesta"] = pd.to_numeric(edit_df["qtd_por_cesta"], errors="coerce").fillna(0).astype(float)
 edit_df["estoque_atual"] = pd.to_numeric(edit_df["estoque_atual"], errors="coerce").fillna(0).astype(float)
 
 edited = st.data_editor(
@@ -114,7 +114,7 @@ edited = st.data_editor(
     column_config={
         "nome": st.column_config.TextColumn("Produto", disabled=True),
         "unidade": st.column_config.TextColumn("Unid.", disabled=True),
-        "qtd_por_cesta": st.column_config.NumberColumn("Qtd/Cesta", format="%.0f", min_value=0, step=1),
+        "qtd_por_cesta": st.column_config.NumberColumn("Qtd/Cesta", format="%.1f", min_value=0, step=0.5),
         "estoque_atual": st.column_config.NumberColumn("Estoque", format="%.1f", min_value=0.0, step=1.0),
     },
     disabled=["id", "nome", "unidade"],
@@ -137,10 +137,10 @@ if st.button("Salvar Alteracoes", type="primary", width='stretch'):
             patch = {"id": int(prod_id)}
             for col in ["qtd_por_cesta", "estoque_atual"]:
                 if col in diff.columns.get_level_values(0):
-                    patch[col] = int(row[col]) if col == "qtd_por_cesta" else float(row[col])
+                    patch[col] = float(row[col])
             alterados.append(patch)
         try:
-            db.atualizar_produtos(alterados, user["access_token"])
+            db.atualizar_produtos(alterados, token)
             flash(f"{len(alterados)} produto(s) atualizado(s)!")
             st.cache_data.clear()
             st.rerun()
@@ -206,7 +206,7 @@ if st.session_state.get("show_import"):
                         rows = estoque.limpar_nan(rows)
                         rows = [{k: v for k, v in r.items() if not (k == "id" and v is None)} for r in rows]
                         try:
-                            db.upsert_produtos(rows, user["access_token"])
+                            db.upsert_produtos(rows, token)
                             flash("Importação aplicada!")
                             st.session_state["show_import"] = False
                             st.cache_data.clear()

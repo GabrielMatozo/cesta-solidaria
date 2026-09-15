@@ -38,3 +38,8 @@ def test_faltando_comprar():
     assert out.iloc[0]["nome"] == "Arroz"
     assert out.iloc[0]["faltando"] == 3
     assert out.iloc[0]["custo_reposicao"] == pytest.approx(61.5)
+
+
+def test_custo_cesta_sem_colunas_retorna_zero():
+    df = pd.DataFrame([{"id": 1, "nome": "Arroz"}])
+    assert calc.custo_cesta(df) == 0.0

@@ -1,5 +1,6 @@
 import html
 import time
+import traceback
 
 import streamlit as st
 
@@ -31,25 +32,26 @@ render_page_header(
 token = auth.get_token()
 
 @st.cache_data(ttl=10)
-def carregar_dashboard(token):
-    produtos = db.listar_produtos(token)
-    compras = db.listar_compras(token, limite=50)
-    regioes = db.listar_regions(token)
-    regiao_ativa = db.get_config("tenda_region_id", token) or config.TENDA_REGION_DEFAULT
-    dias_stale = int(db.get_config("preco_stale_dias", token) or config.PRECO_STALE_DIAS_DEFAULT)
-    compras_mes = db.contar_compras_desde(token, time.strftime("%Y-%m-01"))
+def carregar_dashboard(user_id, _token):
+    produtos = db.listar_produtos(_token)
+    compras = db.listar_compras(_token, limite=50)
+    regioes = db.listar_regions(_token)
+    regiao_ativa = db.get_config("tenda_region_id", _token) or config.TENDA_REGION_DEFAULT
+    dias_stale = int(db.get_config("preco_stale_dias", _token) or config.PRECO_STALE_DIAS_DEFAULT)
+    compras_mes = db.contar_compras_desde(_token, time.strftime("%Y-%m-01"))
     return produtos, compras, regioes, regiao_ativa, dias_stale, compras_mes
 
 with st.spinner("Carregando dashboard..."):
     try:
-        produtos, compras, regioes, regiao_ativa, dias_stale, compras_mes = carregar_dashboard(token)
-    except Exception as e:
-        st.error(f"Erro ao carregar dados: {e}")
+        produtos, compras, regioes, regiao_ativa, dias_stale, compras_mes = carregar_dashboard(user["user_id"], token)
+    except Exception:
+        traceback.print_exc()
+        st.error("Erro ao carregar dados.")
         st.stop()
 
 # ===== CALCULAR ESTATISTICAS =====
 total_produtos = len(produtos)
-estoque_baixo = sum(1 for p in produtos if p.get("estoque_atual", 0) <= p.get("qtd_por_cesta", 1) * 2 and p.get("ativo"))
+estoque_baixo = sum(1 for p in produtos if (p.get("estoque_atual") or 0) <= (p.get("qtd_por_cesta") or 0) * 2 and p.get("ativo"))
 sem_token = sum(1 for p in produtos if not p.get("token_tenda") and p.get("ativo"))
 precos_velhos = 0
 for p in produtos:
@@ -136,9 +138,9 @@ for s in sugestoes:
 if compras:
     st.markdown("### Últimas Compras")
     for c in compras[:5]:
-        data = c.get("data", "")[:16].replace("T", " ")
-        total = c.get("total", 0)
-        n_cestas = c.get("num_cestas", 0)
+        data = html.escape(str(c.get("data") or "")[:16].replace("T", " "))
+        total = float(c.get("total") or 0)
+        n_cestas = c.get("num_cestas") or 0
         st.markdown(html_block(f"""
         <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;margin:8px 0;">
             <div><strong>{n_cestas} cestas</strong> - {data}</div>

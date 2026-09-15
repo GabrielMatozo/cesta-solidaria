@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -36,9 +37,16 @@ def garantir_bases():
         print(f"[AVISO] Falha ao semear regions/config: {err}", file=sys.stderr)
 
 
+def csv_padrao() -> str:
+    ancorado = Path(__file__).resolve().parent.parent / "seed" / "produtos_initial.csv"
+    if ancorado.exists():
+        return str(ancorado)
+    return os.path.join(os.getcwd(), "seed", "produtos_initial.csv")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--csv", default="seed/produtos_initial.csv")
+    parser.add_argument("--csv", default=csv_padrao())
     args = parser.parse_args()
 
     if not os.path.exists(args.csv):
