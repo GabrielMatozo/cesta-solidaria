@@ -20,11 +20,11 @@ token = auth.get_token()
 
 # ===== CARREGAR COMPRAS =====
 @st.cache_data(ttl=10)
-def carregar_compras(token):
-    return db.listar_compras(token)
+def carregar_compras(user_id, _token):
+    return db.listar_compras(_token)
 
 with st.spinner("Carregando histórico..."):
-    compras = carregar_compras(token)
+    compras = carregar_compras(user["user_id"], token)
 
 if not compras:
     st.info("Nenhuma compra registrada ainda. Faça sua primeira simulação no **Simulador**!")
@@ -141,10 +141,10 @@ with col2:
 st.markdown("### Evolução de Preços por Produto")
 
 @st.cache_data(ttl=60)
-def carregar_precos(token):
-    return db.listar_tabela("precos_historico", token)
+def carregar_precos(user_id, _token):
+    return db.listar_tabela("precos_historico", _token)
 
-precos = carregar_precos(token)
+precos = carregar_precos(user["user_id"], token)
 if precos:
     precos_df = pd.DataFrame(precos)
     produtos_unicos = precos_df["produto_id"].unique()

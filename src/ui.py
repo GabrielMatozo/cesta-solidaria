@@ -21,17 +21,17 @@ def carregar_logo_b64() -> str:
 
 
 @st.cache_data(ttl=10)
-def carregar_produtos_cached(token):
+def carregar_produtos_cached(user_id, _token):
     """Produtos ativos para as paginas de estoque/simulador."""
     from src import db
-    return db.listar_produtos(token)
+    return db.listar_produtos(_token)
 
 
 @st.cache_data(ttl=60)
-def carregar_dias_stale_cached(token):
+def carregar_dias_stale_cached(user_id, _token):
     """Threshold de dias para preco desatualizado (config do banco)."""
     from src import config, db
-    return int(db.get_config("preco_stale_dias", token) or config.PRECO_STALE_DIAS_DEFAULT)
+    return int(db.get_config("preco_stale_dias", _token) or config.PRECO_STALE_DIAS_DEFAULT)
 
 
 def listar_desatualizados(df, dias: int):

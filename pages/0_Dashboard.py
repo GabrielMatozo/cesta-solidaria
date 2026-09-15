@@ -31,18 +31,18 @@ render_page_header(
 token = auth.get_token()
 
 @st.cache_data(ttl=10)
-def carregar_dashboard(token):
-    produtos = db.listar_produtos(token)
-    compras = db.listar_compras(token, limite=50)
-    regioes = db.listar_regions(token)
-    regiao_ativa = db.get_config("tenda_region_id", token) or config.TENDA_REGION_DEFAULT
-    dias_stale = int(db.get_config("preco_stale_dias", token) or config.PRECO_STALE_DIAS_DEFAULT)
-    compras_mes = db.contar_compras_desde(token, time.strftime("%Y-%m-01"))
+def carregar_dashboard(user_id, _token):
+    produtos = db.listar_produtos(_token)
+    compras = db.listar_compras(_token, limite=50)
+    regioes = db.listar_regions(_token)
+    regiao_ativa = db.get_config("tenda_region_id", _token) or config.TENDA_REGION_DEFAULT
+    dias_stale = int(db.get_config("preco_stale_dias", _token) or config.PRECO_STALE_DIAS_DEFAULT)
+    compras_mes = db.contar_compras_desde(_token, time.strftime("%Y-%m-01"))
     return produtos, compras, regioes, regiao_ativa, dias_stale, compras_mes
 
 with st.spinner("Carregando dashboard..."):
     try:
-        produtos, compras, regioes, regiao_ativa, dias_stale, compras_mes = carregar_dashboard(token)
+        produtos, compras, regioes, regiao_ativa, dias_stale, compras_mes = carregar_dashboard(user["user_id"], token)
     except Exception as e:
         st.error(f"Erro ao carregar dados: {e}")
         st.stop()

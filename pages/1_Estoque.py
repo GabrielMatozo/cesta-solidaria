@@ -65,7 +65,7 @@ def formulario_novo_produto():
                     "ativo": ativo, "ultima_atualizacao_preco": None
                 }]
                 try:
-                    db.upsert_produtos(novo, user["access_token"])
+                    db.upsert_produtos(novo, token)
                     flash(f"Produto {nome} criado!")
                     st.session_state["show_new_form"] = False
                     st.cache_data.clear()
@@ -75,7 +75,7 @@ def formulario_novo_produto():
 
 
 with st.spinner("Carregando produtos..."):
-    df = pd.DataFrame(carregar_produtos(token))
+    df = pd.DataFrame(carregar_produtos(user["user_id"], token))
 
 if df.empty:
     st.info("Nenhum produto cadastrado. Use o formulario abaixo para criar o primeiro.")
@@ -97,7 +97,7 @@ with col_d:
     status = st.selectbox("Status do preço", ["todos", "automático", "manual", "desatualizado"], key="estoque_status")
 
 # Aplicar filtros
-dias_stale = carregar_dias_stale(token)
+dias_stale = carregar_dias_stale(user["user_id"], token)
 df_filtrado = estoque.filtrar(df, texto, status, dias_stale)
 df_filtrado = estoque.ordenar(df_filtrado, campo, crescente)
 
@@ -140,7 +140,7 @@ if st.button("Salvar Alteracoes", type="primary", width='stretch'):
                     patch[col] = int(row[col]) if col == "qtd_por_cesta" else float(row[col])
             alterados.append(patch)
         try:
-            db.atualizar_produtos(alterados, user["access_token"])
+            db.atualizar_produtos(alterados, token)
             flash(f"{len(alterados)} produto(s) atualizado(s)!")
             st.cache_data.clear()
             st.rerun()
@@ -206,7 +206,7 @@ if st.session_state.get("show_import"):
                         rows = estoque.limpar_nan(rows)
                         rows = [{k: v for k, v in r.items() if not (k == "id" and v is None)} for r in rows]
                         try:
-                            db.upsert_produtos(rows, user["access_token"])
+                            db.upsert_produtos(rows, token)
                             flash("Importação aplicada!")
                             st.session_state["show_import"] = False
                             st.cache_data.clear()

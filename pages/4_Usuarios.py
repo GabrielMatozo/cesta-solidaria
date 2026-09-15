@@ -31,10 +31,10 @@ token = auth.get_token()
 
 # ===== LISTAR USUARIOS =====
 @st.cache_data(ttl=10)
-def carregar_usuarios(token):
-    return db.listar_profiles(token)
+def carregar_usuarios(user_id, _token):
+    return db.listar_profiles(_token)
 
-profiles = carregar_usuarios(token)
+profiles = carregar_usuarios(user["user_id"], token)
 
 # ===== LISTA DE USUARIOS =====
 st.markdown("### Usuários Cadastrados")
@@ -74,7 +74,7 @@ if alvo_exclusao:
         confirm_label="Excluir", cancel_label="Cancelar", key=f"confirm_excluir_{alvo_exclusao['id']}"
     ):
         try:
-            db.excluir_usuario(alvo_exclusao["id"], user["access_token"])
+            db.excluir_usuario(alvo_exclusao["id"], token)
             flash(f"Usuario {nome_alvo} excluido")
             st.cache_data.clear()
             st.rerun()
@@ -108,7 +108,7 @@ with st.form("novo_usuario_form"):
             with st.spinner("Criando usuário..."):
                 try:
                     # criação via RPC admin (JWT do administrador logado)
-                    db.criar_usuario(email, senha, nome, is_admin, user["access_token"])
+                    db.criar_usuario(email, senha, nome, is_admin, token)
                     flash(f"Usuario {nome} criado!")
                     st.cache_data.clear()
                     st.rerun()
