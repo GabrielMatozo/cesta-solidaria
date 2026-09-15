@@ -106,8 +106,8 @@ st.markdown("### Editar Estoque")
 st.caption("Altere estoque e quantidade por cesta. Clique em Salvar para confirmar.")
 
 edit_df = df[["id", "nome", "unidade", "qtd_por_cesta", "estoque_atual"]].copy()
-edit_df["qtd_por_cesta"] = edit_df["qtd_por_cesta"].fillna(0).astype(int)
-edit_df["estoque_atual"] = edit_df["estoque_atual"].astype(float)
+edit_df["qtd_por_cesta"] = pd.to_numeric(edit_df["qtd_por_cesta"], errors="coerce").fillna(0).astype(int)
+edit_df["estoque_atual"] = pd.to_numeric(edit_df["estoque_atual"], errors="coerce").fillna(0).astype(float)
 
 edited = st.data_editor(
     edit_df,
