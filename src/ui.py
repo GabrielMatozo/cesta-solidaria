@@ -42,8 +42,13 @@ def listar_desatualizados(df, dias: int):
 
     linhas = []
     for _, r in df.iterrows():
-        if r.get("token_tenda") and config.preco_desatualizado(
-            r.get("ultima_atualizacao_preco"), dias
+        token = r.get("token_tenda")
+        if (
+            pd.notna(token)
+            and token
+            and config.preco_desatualizado(
+                r.get("ultima_atualizacao_preco"), dias
+            )
         ):
             linhas.append(r)
     return pd.DataFrame(linhas) if linhas else pd.DataFrame()
@@ -121,6 +126,21 @@ _STAT_ICONS = {
 }
 
 
+def _badge_html_seguro(badge_html: str) -> str:
+    """Mantem HTML so se for badge gerado pelo modulo; senao escapa."""
+    if not badge_html:
+        return ""
+    s = str(badge_html).strip()
+    if (
+        s.startswith('<span class="badge badge-')
+        and s.endswith("</span>")
+        and s.count("<") == 2
+        and s.count(">") == 2
+    ):
+        return str(badge_html)
+    return html.escape(str(badge_html))
+
+
 def stat_card(label: str, value: str, icon: str, icon_color: str = "green", badge_html: str = "") -> str:
     """Gera HTML para card de estatistica. icon pode ser chave SVG ou caractere."""
     label = html.escape(str(label))
@@ -132,7 +152,8 @@ def stat_card(label: str, value: str, icon: str, icon_color: str = "green", badg
         "red": "stat-icon-red",
     }
     icon_class = icon_colors.get(icon_color, "stat-icon-green")
-    icon_html = _STAT_ICONS.get(icon, icon)
+    icon_html = _STAT_ICONS.get(icon, html.escape(str(icon)))
+    badge_seguro = _badge_html_seguro(badge_html)
 
     return html_block(f"""
     <div class="stat-card">
@@ -140,7 +161,7 @@ def stat_card(label: str, value: str, icon: str, icon_color: str = "green", badg
         <div class="stat-content">
             <div class="stat-value">{value}</div>
             <div class="stat-label">{label}</div>
-            {badge_html}
+            {badge_seguro}
         </div>
     </div>
     """)

@@ -2,6 +2,8 @@ import pandas as pd
 
 
 def custo_cesta(df: pd.DataFrame) -> float:
+    if "qtd_por_cesta" not in df.columns or "preco_atual" not in df.columns:
+        return 0.0
     return float((df["qtd_por_cesta"] * df["preco_atual"]).sum())
 
 

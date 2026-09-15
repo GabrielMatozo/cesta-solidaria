@@ -78,3 +78,15 @@ def test_normalizar_ativo_variacoes():
     assert mod.normalizar_ativo("0") is False
     assert mod.normalizar_ativo("") is False
     assert mod.normalizar_ativo(None) is False
+
+
+def test_filtrar_sem_colunas_nome_marca_retorna_inalterado():
+    df = pd.DataFrame([{"id": 1, "preco_atual": 1.0}])
+    out = estoque.filtrar(df, "arroz", "todos", dias=2)
+    assert len(out) == len(df)
+
+
+def test_filtrar_sem_coluna_token_retorna_inalterado():
+    df = pd.DataFrame([{"id": 1, "nome": "Arroz", "marca": "C"}])
+    out = estoque.filtrar(df, "", "desatualizado", dias=2)
+    assert len(out) == len(df)
