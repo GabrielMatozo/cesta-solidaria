@@ -176,7 +176,11 @@ if st.session_state.get("show_import"):
             # latin-1 mapeia qualquer byte, nunca falha
             texto_import = conteudo.decode("latin-1")
         if texto_import is not None:
-            novo = csv_io.ler_csv(texto_import)
+            try:
+                novo = csv_io.ler_csv(texto_import)
+            except ValueError as e:
+                st.error(str(e))
+                st.stop()
             erros = csv_io.validar_csv(novo)
             if erros:
                 st.error("Erros no CSV:")
