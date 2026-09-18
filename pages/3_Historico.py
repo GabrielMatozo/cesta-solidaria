@@ -165,6 +165,11 @@ except Exception:
     st.error("Erro ao carregar historico de precos.")
     st.stop()
 if precos:
+    precos = [
+        p for p in precos
+        if isinstance(p, dict) and p.get("produto_id") is not None and p.get("dia") and p.get("preco") is not None
+    ]
+if precos:
     precos_df = pd.DataFrame(precos)
     produtos_unicos = precos_df["produto_id"].unique()
 
@@ -182,11 +187,11 @@ if precos:
             key="hist_prod_preco"
         )
 
-        prod_precos = precos_df[precos_df["produto_id"] == prod_id].sort_values("dia")
+        prod_precos = precos_df[precos_df["produto_id"] == prod_id].copy().sort_values("dia")
         if not prod_precos.empty:
             prod_precos["dia"] = pd.to_datetime(prod_precos["dia"], errors="coerce")
             prod_precos = prod_precos.dropna(subset=["dia"])
-        if not prod_precos.empty:
+        if not prod_precos.empty and "preco" in prod_precos.columns:
             st.line_chart(prod_precos.set_index("dia")["preco"], height=250)
             st.caption(f"Evolução do preço - Região: {prod_precos['region_id'].iloc[0] if 'region_id' in prod_precos.columns else 'N/A'}")
 else:

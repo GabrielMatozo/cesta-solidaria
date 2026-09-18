@@ -131,4 +131,5 @@ with st.form("novo_usuario_form"):
                     elif "apenas administradores" in msg:
                         st.error("Somente administradores podem criar usuarios.")
                     else:
-                        st.error(f"Erro ao criar usuario: {e}")
+                        traceback.print_exc()
+                        st.error("Erro ao criar usuario. Tente novamente.")

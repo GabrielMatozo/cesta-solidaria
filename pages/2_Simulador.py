@@ -160,22 +160,29 @@ with col1:
 # Salvar cálculo
 with col2:
     if st.button("Salvar cálculo atual", width='stretch', type="secondary"):
-        itens_json = json.dumps(faltando[["produto", "qtd_por_cesta", "preco_atual", "custo_reposicao"]].to_dict("records"))
-        compra = {
-            "orcamento": orcamento if orcamento > 0 else None,
-            "num_cestas": int(cestas_desejadas),
-            "itens": itens_json,
-            "total": total,
-            "criado_por": user["user_id"],
-        }
-        try:
-            db.inserir_compra(compra, token)
-            st.cache_data.clear()
-            flash("Cálculo salvo no histórico!")
-            st.rerun()
-        except Exception:
-            traceback.print_exc()
-            st.error("Erro ao salvar calculo. Tente novamente.")
+        if st.session_state.get("salvando_compra"):
+            st.info("Salvamento em andamento. Aguarde.")
+        else:
+            st.session_state["salvando_compra"] = True
+            try:
+                itens_json = json.dumps(faltando[["produto", "qtd_por_cesta", "preco_atual", "custo_reposicao"]].to_dict("records"))
+                compra = {
+                    "orcamento": orcamento if orcamento > 0 else None,
+                    "num_cestas": int(cestas_desejadas),
+                    "itens": itens_json,
+                    "total": total,
+                    "criado_por": user["user_id"],
+                }
+                try:
+                    db.inserir_compra(compra, token)
+                    st.cache_data.clear()
+                    flash("Cálculo salvo no histórico!")
+                    st.rerun()
+                except Exception:
+                    traceback.print_exc()
+                    st.error("Erro ao salvar calculo. Tente novamente.")
+            finally:
+                st.session_state.pop("salvando_compra", None)
 
 # Limpar
 with col3:

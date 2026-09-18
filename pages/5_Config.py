@@ -74,11 +74,17 @@ if not regioes:
 # Montar opções: cidades conhecidas primeiro, depois outras
 opcoes_regiao = {}
 for r in regioes:
+    if not isinstance(r, dict):
+        continue
     nome = r.get("nome")
     rid = r.get("region_id")
     if not nome or not rid:
         continue
     opcoes_regiao[f"{nome} ({rid})"] = rid
+
+if not opcoes_regiao:
+    st.error("Erro ao carregar regioes. Tente novamente.")
+    st.stop()
 
 atual = config_atual["tenda_region_id"] or "000010"
 
@@ -125,8 +131,9 @@ with st.expander("Adicionar região manualmente"):
                 st.cache_data.clear()
                 flash(f"Regiao {novo_nome} adicionada!")
                 st.rerun()
-            except Exception as e:
-                st.error(f"Erro ao adicionar região: {e}")
+            except Exception:
+                traceback.print_exc()
+                st.error("Erro ao adicionar regiao. Tente novamente.")
         else:
             st.warning("Preencha código e nome da região.")
 
@@ -134,7 +141,9 @@ with st.expander("Adicionar região manualmente"):
 st.markdown("### Alerta de preço desatualizado")
 try:
     dias_default = int(config_atual["preco_stale_dias"] or config.PRECO_STALE_DIAS_DEFAULT)
-except (ValueError, TypeError):
+except (ValueError, TypeError, KeyError):
+    dias_default = config.PRECO_STALE_DIAS_DEFAULT
+if dias_default < 1 or dias_default > 30:
     dias_default = config.PRECO_STALE_DIAS_DEFAULT
 dias_input = st.number_input(
     "Dias sem atualização para alertar",
@@ -269,30 +278,35 @@ with col3:
             if not csv_path.exists():
                 st.error(f"Arquivo não encontrado: {csv_path}")
             else:
-                with open(csv_path, encoding="utf-8") as f:
-                    df = csv_io.ler_csv(f.read())
-                cols = ["nome", "marca", "unidade", "qtd_por_cesta", "estoque_atual",
-                        "preco_atual", "token_tenda", "url_tenda", "termo_busca", "ativo"]
-                for col in cols:
-                    if col not in df.columns:
-                        df[col] = None
-                df["qtd_por_cesta"] = df["qtd_por_cesta"].fillna(1)
-                df["estoque_atual"] = df["estoque_atual"].fillna(0)
-                df["ativo"] = df["ativo"].map(estoque.normalizar_ativo).where(df["ativo"].notna(), True)
-                if "id" in df.columns:
-                    df["id"] = df["id"].where(df["id"].notna(), None)
-
-                rows = df[["id"] + cols if "id" in df.columns else cols].to_dict("records")
-                rows = estoque.limpar_nan(rows)
                 try:
-                    # ignore_duplicates: seed nao destrói estado operacional
-                    # (estoque/preço) de produtos que já existem no banco.
-                    db.upsert_produtos(rows, token, ignore_duplicates=True)
-                    st.cache_data.clear()
-                    flash(f"Seed concluido: {len(rows)} produtos importados.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Erro no seed: {e}")
+                    with open(csv_path, encoding="utf-8") as f:
+                        df = csv_io.ler_csv(f.read())
+                except (OSError, ValueError):
+                    traceback.print_exc()
+                    st.error("Erro ao ler seed. Tente novamente.")
+                else:
+                    cols = ["nome", "marca", "unidade", "qtd_por_cesta", "estoque_atual",
+                            "preco_atual", "token_tenda", "url_tenda", "termo_busca", "ativo"]
+                    for col in cols:
+                        if col not in df.columns:
+                            df[col] = None
+                    df["qtd_por_cesta"] = df["qtd_por_cesta"].fillna(1)
+                    df["estoque_atual"] = df["estoque_atual"].fillna(0)
+                    df["ativo"] = df["ativo"].map(estoque.normalizar_ativo).where(df["ativo"].notna(), True)
+                    if "id" in df.columns:
+                        df["id"] = df["id"].where(df["id"].notna(), None)
+
+                    rows = df[["id"] + cols if "id" in df.columns else cols].to_dict("records")
+                    rows = estoque.limpar_nan(rows)
+                    try:
+                        # ignore_duplicates: seed nao destrói estado operacional
+                        # (estoque/preço) de produtos que já existem no banco.
+                        db.upsert_produtos(rows, token, ignore_duplicates=True)
+                        st.cache_data.clear()
+                        flash(f"Seed concluido: {len(rows)} produtos importados.")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro no seed: {e}")
 
 # Nova linha: Descoberta automática de tokens
 st.markdown("### Descoberta Automática de Tokens Tenda")
@@ -345,9 +359,10 @@ if st.button("Descobrir Tokens Tenda", type="secondary", width='stretch'):
                             else:
                                 erros += 1
                                 erros_detalhes.append(f"{prod['nome']}: nenhum resultado na busca")
-                        except Exception as e:
+                        except Exception:
+                            traceback.print_exc()
                             erros += 1
-                            erros_detalhes.append(f"{prod['nome']}: {type(e).__name__}: {e}")
+                            erros_detalhes.append(f"{prod['nome']}: erro ao buscar token")
                         barra.progress((i + 1) / len(sem_token))
                     st.cache_data.clear()
                     # Store results in session_state to persist after rerun

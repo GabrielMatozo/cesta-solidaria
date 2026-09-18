@@ -8,6 +8,8 @@ COLUNAS_CSV = [
     "ultima_atualizacao_preco",
 ]
 
+MAX_CSV_BYTES = 5 * 1024 * 1024
+
 
 def produtos_to_csv(df: pd.DataFrame) -> str:
     cols = [c for c in COLUNAS_CSV if c in df.columns]

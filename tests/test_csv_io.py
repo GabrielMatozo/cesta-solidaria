@@ -137,3 +137,7 @@ def test_diff_importacao_linha_antiga_sem_chave_opcional():
     ])
     diff = csv_io.diff_importacao(atual, novo)
     assert diff["novos"] == []
+    assert len(diff["alterados"]) == 1
+    assert diff["alterados"][0]["campo"] == "marca"
+    assert diff["alterados"][0]["produto"] == "Arroz"
+    assert diff["alterados"][0]["para"] == "Camil"
