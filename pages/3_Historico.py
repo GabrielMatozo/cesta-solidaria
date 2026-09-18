@@ -50,6 +50,9 @@ def parse_itens(raw) -> list | None:
 
 
 df = pd.DataFrame(compras)
+if "itens" not in df.columns or "data" not in df.columns:
+    st.error("Erro ao carregar dados.")
+    st.stop()
 df["itens_lista"] = df["itens"].apply(parse_itens)
 df["data_exibicao"] = df["data"].apply(lambda x: config.formatar_data_hora(x) if x else "-")
 df["valor_familia"] = df.apply(
@@ -181,7 +184,9 @@ if precos:
 
         prod_precos = precos_df[precos_df["produto_id"] == prod_id].sort_values("dia")
         if not prod_precos.empty:
-            prod_precos["dia"] = pd.to_datetime(prod_precos["dia"])
+            prod_precos["dia"] = pd.to_datetime(prod_precos["dia"], errors="coerce")
+            prod_precos = prod_precos.dropna(subset=["dia"])
+        if not prod_precos.empty:
             st.line_chart(prod_precos.set_index("dia")["preco"], height=250)
             st.caption(f"Evolução do preço - Região: {prod_precos['region_id'].iloc[0] if 'region_id' in prod_precos.columns else 'N/A'}")
 else:

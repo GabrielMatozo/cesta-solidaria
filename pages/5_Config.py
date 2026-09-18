@@ -74,8 +74,10 @@ if not regioes:
 # Montar opções: cidades conhecidas primeiro, depois outras
 opcoes_regiao = {}
 for r in regioes:
-    nome = r["nome"]
-    rid = r["region_id"]
+    nome = r.get("nome")
+    rid = r.get("region_id")
+    if not nome or not rid:
+        continue
     opcoes_regiao[f"{nome} ({rid})"] = rid
 
 atual = config_atual["tenda_region_id"] or "000010"
@@ -130,10 +132,14 @@ with st.expander("Adicionar região manualmente"):
 
 # ===== ALERTA DE PREÇO DESATUALIZADO =====
 st.markdown("### Alerta de preço desatualizado")
+try:
+    dias_default = int(config_atual["preco_stale_dias"] or config.PRECO_STALE_DIAS_DEFAULT)
+except (ValueError, TypeError):
+    dias_default = config.PRECO_STALE_DIAS_DEFAULT
 dias_input = st.number_input(
     "Dias sem atualização para alertar",
     min_value=1, max_value=30,
-    value=int(config_atual['preco_stale_dias'] or config.PRECO_STALE_DIAS_DEFAULT),
+    value=dias_default,
 )
 if st.button("Salvar limite de dias"):
     try:

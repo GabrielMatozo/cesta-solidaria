@@ -124,3 +124,16 @@ def test_ler_csv_erro_nao_vaza_detalhe_do_parser():
 def test_ler_csv_vazio_erro_controlado():
     with pytest.raises(ValueError):
         csv_io.ler_csv("")
+
+
+def test_diff_importacao_linha_antiga_sem_chave_opcional():
+    atual = pd.DataFrame([
+        {"id": 1, "nome": "Arroz", "qtd_por_cesta": 2, "estoque_atual": 7,
+         "preco_atual": 20.5, "ativo": True},
+    ])
+    novo = pd.DataFrame([
+        {"id": 1, "nome": "Arroz", "marca": "Camil", "qtd_por_cesta": 2,
+         "estoque_atual": 7, "preco_atual": 20.5, "ativo": True},
+    ])
+    diff = csv_io.diff_importacao(atual, novo)
+    assert diff["novos"] == []

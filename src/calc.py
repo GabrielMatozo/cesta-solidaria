@@ -10,9 +10,11 @@ def custo_cesta(df: pd.DataFrame) -> float:
 def cestas_possiveis_estoque(df: pd.DataFrame) -> int:
     if df.empty:
         return 0
-    if (df["qtd_por_cesta"] <= 0).any():
+    qtd = pd.to_numeric(df["qtd_por_cesta"], errors="coerce").fillna(0)
+    if (qtd <= 0).any():
         return 0
-    possiveis = (df["estoque_atual"] / df["qtd_por_cesta"]).astype(int).clip(lower=0)
+    estoque = pd.to_numeric(df["estoque_atual"], errors="coerce").fillna(0)
+    possiveis = (estoque / qtd).astype(int).clip(lower=0)
     return int(possiveis.min())
 
 

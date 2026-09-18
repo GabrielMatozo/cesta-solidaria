@@ -43,3 +43,30 @@ def test_faltando_comprar():
 def test_custo_cesta_sem_colunas_retorna_zero():
     df = pd.DataFrame([{"id": 1, "nome": "Arroz"}])
     assert calc.custo_cesta(df) == 0.0
+
+
+def test_cestas_possiveis_estoque_none_nao_quebra():
+    df = pd.DataFrame([
+        {"id": 1, "nome": "Arroz", "qtd_por_cesta": 2, "estoque_atual": None,
+         "preco_atual": 20.50},
+        {"id": 2, "nome": "Feijao", "qtd_por_cesta": None, "estoque_atual": 21,
+         "preco_atual": 5.25},
+    ])
+    assert calc.cestas_possiveis_estoque(df) == 0
+
+
+def test_cestas_possiveis_estoque_nan_nas_duas_colunas():
+    df = pd.DataFrame([
+        {"id": 1, "nome": "Arroz", "qtd_por_cesta": 2, "estoque_atual": float("nan"),
+         "preco_atual": 20.50},
+        {"id": 2, "nome": "Feijao", "qtd_por_cesta": 3, "estoque_atual": 21,
+         "preco_atual": 5.25},
+    ])
+    assert calc.cestas_possiveis_estoque(df) == 0
+    df2 = pd.DataFrame([
+        {"id": 1, "nome": "Arroz", "qtd_por_cesta": float("nan"),
+         "estoque_atual": 7, "preco_atual": 20.50},
+        {"id": 2, "nome": "Feijao", "qtd_por_cesta": 3, "estoque_atual": 21,
+         "preco_atual": 5.25},
+    ])
+    assert calc.cestas_possiveis_estoque(df2) == 0
