@@ -1,5 +1,6 @@
 import html
 import json
+import traceback
 
 import pandas as pd
 import streamlit as st
@@ -25,7 +26,12 @@ def carregar_compras(user_id, _token):
     return db.listar_compras(_token)
 
 with st.spinner("Carregando histórico..."):
-    compras = carregar_compras(user["user_id"], token)
+    try:
+        compras = carregar_compras(user["user_id"], token)
+    except Exception:
+        traceback.print_exc()
+        st.error("Erro ao carregar dados.")
+        st.stop()
 
 if not compras:
     st.info("Nenhuma compra registrada ainda. Faça sua primeira simulação no **Simulador**!")
@@ -149,13 +155,23 @@ st.markdown("### Evolução de Preços por Produto")
 def carregar_precos(user_id, _token):
     return db.listar_tabela("precos_historico", _token)
 
-precos = carregar_precos(user["user_id"], token)
+try:
+    precos = carregar_precos(user["user_id"], token)
+except Exception:
+    traceback.print_exc()
+    st.error("Erro ao carregar historico de precos.")
+    st.stop()
 if precos:
     precos_df = pd.DataFrame(precos)
     produtos_unicos = precos_df["produto_id"].unique()
 
     if len(produtos_unicos) > 0:
-        produtos_map = {p["id"]: p["nome"] for p in db.listar_produtos(token)}
+        try:
+            produtos_map = {p["id"]: p["nome"] for p in db.listar_produtos(token)}
+        except Exception:
+            traceback.print_exc()
+            st.error("Erro ao carregar historico de precos.")
+            st.stop()
         prod_id = st.selectbox(
             "Produto",
             produtos_unicos,

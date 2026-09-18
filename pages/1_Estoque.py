@@ -1,3 +1,5 @@
+import traceback
+
 import pandas as pd
 import streamlit as st
 
@@ -75,7 +77,13 @@ def formulario_novo_produto():
 
 
 with st.spinner("Carregando produtos..."):
-    df = pd.DataFrame(carregar_produtos(user["user_id"], token))
+    try:
+        df = pd.DataFrame(carregar_produtos(user["user_id"], token))
+        dias_stale = carregar_dias_stale(user["user_id"], token)
+    except Exception:
+        traceback.print_exc()
+        st.error("Erro ao carregar dados.")
+        st.stop()
 
 if df.empty:
     st.info("Nenhum produto cadastrado. Use o formulario abaixo para criar o primeiro.")
@@ -97,7 +105,6 @@ with col_d:
     status = st.selectbox("Status do preço", ["todos", "automático", "manual", "desatualizado"], key="estoque_status")
 
 # Aplicar filtros
-dias_stale = carregar_dias_stale(user["user_id"], token)
 df_filtrado = estoque.filtrar(df, texto, status, dias_stale)
 df_filtrado = estoque.ordenar(df_filtrado, campo, crescente)
 

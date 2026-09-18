@@ -34,7 +34,13 @@ carregar_produtos = carregar_produtos_cached
 carregar_dias_stale = carregar_dias_stale_cached
 
 with st.spinner("Carregando produtos..."):
-    df = pd.DataFrame(carregar_produtos(user["user_id"], token))
+    try:
+        df = pd.DataFrame(carregar_produtos(user["user_id"], token))
+        dias = carregar_dias_stale(user["user_id"], token)
+    except Exception:
+        traceback.print_exc()
+        st.error("Erro ao carregar dados.")
+        st.stop()
 
 if df.empty:
     st.warning("Estoque vazio. Va em **Estoque** para cadastrar produtos.")
@@ -81,7 +87,6 @@ with col3:
     st.metric("Cestas com orçamento", int(cestas_orcamento) if orcamento > 0 else "Ilimitado")
 
 # ===== ALERTAS DE PREÇO (calculados uma unica vez) =====
-dias = carregar_dias_stale(user["user_id"], token)
 desatualizados_rows = listar_desatualizados(df, dias).to_dict("records")
 desatualizados = [r["nome"] for r in desatualizados_rows]
 
