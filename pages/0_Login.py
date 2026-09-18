@@ -1,3 +1,5 @@
+import traceback
+
 import streamlit as st
 
 from src import auth
@@ -128,13 +130,19 @@ if submitted:
         st.error("Email inválido")
     else:
         with st.spinner("Autenticando..."):
-            if auth.login(email, senha, lembrar=lembrar):
-                # switch_page faz a troca atomica de pagina no cliente;
-                # st.rerun aqui reexecutava com a navegacao mutada e deixava
-                # o frame antigo do login visivel atras do novo.
-                st.switch_page("pages/0_Dashboard.py")
+            try:
+                ok = auth.login(email, senha, lembrar=lembrar)
+            except auth.ErroRede:
+                traceback.print_exc()
+                st.error("Falha de conexao. Verifique sua internet e tente de novo.")
             else:
-                st.error("Email ou senha inválidos")
+                if ok:
+                    # switch_page faz a troca atomica de pagina no cliente;
+                    # st.rerun aqui reexecutava com a navegacao mutada e deixava
+                    # o frame antigo do login visivel atras do novo.
+                    st.switch_page("pages/0_Dashboard.py")
+                else:
+                    st.error("Email ou senha inválidos")
 
 # Footer alinhado a largura do card
 st.markdown(

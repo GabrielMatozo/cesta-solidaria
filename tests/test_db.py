@@ -228,3 +228,11 @@ def test_excluir_usuario_via_rpc(monkeypatch):
     db.excluir_usuario("u-1", "tok-admin")
     assert "/rpc/admin_excluir_usuario" in chamadas["url"]
     assert chamadas["json"] == {"p_id": "u-1"}
+
+
+def test_renovar_sessao_corpo_anomalo_retorna_none(monkeypatch):
+    def fake_post(url, json=None, headers=None, **kw):
+        return FakeResp({"inesperado": 1}, status=200)
+
+    monkeypatch.setattr(db.requests, "post", fake_post)
+    assert db.renovar_sessao("rt-antigo") is None

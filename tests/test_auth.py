@@ -3,6 +3,7 @@ import json
 import time
 from unittest import mock
 
+import pytest
 import requests
 
 from src import auth
@@ -153,7 +154,8 @@ def test_login_retorna_false_em_falha_rede():
     fake_db.autenticar.side_effect = requests.RequestException("rede")
     with mock.patch("src.auth.db", fake_db), mock.patch("src.auth.st") as fake_st:
         fake_st.session_state = {}
-        assert auth.login("a@b.c", "senha") is False
+        with pytest.raises(auth.ErroRede):
+            auth.login("a@b.c", "senha")
     assert "session" not in fake_st.session_state
 
 
@@ -163,3 +165,22 @@ def test_is_logged_in_valido_nao_revoga_sessao():
         fake_st.session_state = {"session": _sessao_com_login_time(recente)}
         assert auth.is_logged_in() is True
     fake_db.revogar_sessao.assert_not_called()
+
+
+def test_login_levanta_erro_rede_em_falha_rede():
+    fake_db = mock.Mock()
+    fake_db.autenticar.side_effect = requests.RequestException("rede")
+    with mock.patch("src.auth.db", fake_db), mock.patch("src.auth.st") as fake_st:
+        fake_st.session_state = {}
+        with pytest.raises(auth.ErroRede):
+            auth.login("a@b.c", "senha")
+    assert "session" not in fake_st.session_state
+
+
+def test_login_credencial_invalida_retorna_false():
+    fake_db = mock.Mock()
+    fake_db.autenticar.return_value = None
+    with mock.patch("src.auth.db", fake_db), mock.patch("src.auth.st") as fake_st:
+        fake_st.session_state = {}
+        assert auth.login("a@b.c", "errada") is False
+    assert "session" not in fake_st.session_state
