@@ -8,6 +8,10 @@ import streamlit as st
 from src import db
 
 
+class ErroRede(Exception):
+    """Falha de rede ou resposta anomala ao autenticar."""
+
+
 def _jwt_exp(token: str) -> int | None:
     """Retorna timestamp de expiração do JWT ou None se inválido."""
     try:
@@ -30,27 +34,26 @@ def login(email: str, senha: str, lembrar: bool = False) -> bool:
     """Autentica usuário e cria sessão."""
     try:
         dados = db.autenticar(email, senha)
-    except requests.RequestException:
-        return False
+    except (requests.RequestException, KeyError, TypeError) as exc:
+        raise ErroRede("falha de rede ao autenticar") from exc
     if not dados:
         return False
 
-    usuario = dados["user"]
     try:
+        usuario = dados["user"]
         perfil = db.get_profile(usuario["id"], dados["access_token"])
-    except Exception:
-        return False
-
-    st.session_state["session"] = {
-        "access_token": dados["access_token"],
-        "refresh_token": dados.get("refresh_token"),
-        "user_id": usuario["id"],
-        "email": usuario["email"],
-        "nome": perfil.get("nome") if perfil else "",
-        "is_admin": bool(perfil and perfil.get("is_admin")),
-        "login_time": time.time(),
-        "remember_me": lembrar,
-    }
+        st.session_state["session"] = {
+            "access_token": dados["access_token"],
+            "refresh_token": dados.get("refresh_token"),
+            "user_id": usuario["id"],
+            "email": usuario["email"],
+            "nome": perfil.get("nome") if perfil else "",
+            "is_admin": bool(perfil and perfil.get("is_admin")),
+            "login_time": time.time(),
+            "remember_me": lembrar,
+        }
+    except (requests.RequestException, KeyError, TypeError) as exc:
+        raise ErroRede("falha de rede ao carregar perfil") from exc
     return True
 
 

@@ -1,3 +1,5 @@
+import traceback
+
 import pandas as pd
 import streamlit as st
 
@@ -70,12 +72,19 @@ def formulario_novo_produto():
                     st.session_state["show_new_form"] = False
                     st.cache_data.clear()
                     st.rerun()
-                except Exception as e:
-                    st.error(f"Erro ao criar produto: {e}")
+                except Exception:
+                    traceback.print_exc()
+                    st.error("Erro ao criar produto. Tente novamente.")
 
 
 with st.spinner("Carregando produtos..."):
-    df = pd.DataFrame(carregar_produtos(user["user_id"], token))
+    try:
+        df = pd.DataFrame(carregar_produtos(user["user_id"], token))
+        dias_stale = carregar_dias_stale(user["user_id"], token)
+    except Exception:
+        traceback.print_exc()
+        st.error("Erro ao carregar dados.")
+        st.stop()
 
 if df.empty:
     st.info("Nenhum produto cadastrado. Use o formulario abaixo para criar o primeiro.")
@@ -97,7 +106,6 @@ with col_d:
     status = st.selectbox("Status do preço", ["todos", "automático", "manual", "desatualizado"], key="estoque_status")
 
 # Aplicar filtros
-dias_stale = carregar_dias_stale(user["user_id"], token)
 df_filtrado = estoque.filtrar(df, texto, status, dias_stale)
 df_filtrado = estoque.ordenar(df_filtrado, campo, crescente)
 
@@ -144,8 +152,9 @@ if st.button("Salvar Alteracoes", type="primary", width='stretch'):
             flash(f"{len(alterados)} produto(s) atualizado(s)!")
             st.cache_data.clear()
             st.rerun()
-        except Exception as e:
-            st.error(f"Erro ao salvar: {e}")
+        except Exception:
+            traceback.print_exc()
+            st.error("Erro ao salvar. Tente novamente.")
 
 st.divider()
 
@@ -170,6 +179,9 @@ if st.session_state.get("show_import"):
     arquivo = st.file_uploader("Selecionar arquivo CSV", type=["csv"], key="estoque_import", label_visibility="collapsed")
     if arquivo:
         conteudo = arquivo.getvalue()
+        if len(conteudo) > csv_io.MAX_CSV_BYTES:
+            st.error("Arquivo muito grande. Envie um CSV de ate 5 MB.")
+            st.stop()
         try:
             texto_import = conteudo.decode("utf-8-sig")
         except UnicodeDecodeError:
@@ -197,26 +209,34 @@ if st.session_state.get("show_import"):
                             for alt in diff["alterados"]:
                                 st.write(f"- {alt['produto']}: {alt['campo']} {alt['de']} -> {alt['para']}")
                     if st.button("Aplicar importação", type="primary", width='stretch'):
-                        # CSV sem coluna id = tudo novo (bigserial resolve)
-                        colunas_import = ["id", "nome", "marca", "unidade", "qtd_por_cesta",
-                            "estoque_atual", "preco_atual", "token_tenda",
-                            "url_tenda", "termo_busca", "ativo",
-                        ]
-                        for col in colunas_import:
-                            if col not in novo.columns:
-                                novo[col] = None
-                        cols = [c for c in colunas_import if c in novo.columns or c == "id"]
-                        rows = novo[cols].to_dict("records")
-                        rows = estoque.limpar_nan(rows)
-                        rows = [{k: v for k, v in r.items() if not (k == "id" and v is None)} for r in rows]
-                        try:
-                            db.upsert_produtos(rows, token)
-                            flash("Importação aplicada!")
-                            st.session_state["show_import"] = False
-                            st.cache_data.clear()
-                            st.rerun()
-                        except Exception as e:
-                            st.error(f"Erro ao aplicar importação: {e}")
+                        if st.session_state.get("aplicando_import"):
+                            st.info("Importacao em andamento. Aguarde.")
+                        else:
+                            st.session_state["aplicando_import"] = True
+                            try:
+                                # CSV sem coluna id = tudo novo (bigserial resolve)
+                                colunas_import = ["id", "nome", "marca", "unidade", "qtd_por_cesta",
+                                    "estoque_atual", "preco_atual", "token_tenda",
+                                    "url_tenda", "termo_busca", "ativo",
+                                ]
+                                for col in colunas_import:
+                                    if col not in novo.columns:
+                                        novo[col] = None
+                                cols = [c for c in colunas_import if c in novo.columns or c == "id"]
+                                rows = novo[cols].to_dict("records")
+                                rows = estoque.limpar_nan(rows)
+                                rows = [{k: v for k, v in r.items() if not (k == "id" and v is None)} for r in rows]
+                                try:
+                                    db.upsert_produtos(rows, token)
+                                    flash("Importação aplicada!")
+                                    st.session_state["show_import"] = False
+                                    st.cache_data.clear()
+                                    st.rerun()
+                                except Exception:
+                                    traceback.print_exc()
+                                    st.error("Erro ao aplicar importacao. Tente novamente.")
+                            finally:
+                                st.session_state.pop("aplicando_import", None)
 
 # ===== ALERTAS DE PREÇO DESATUALIZADO =====
 desat_df = listar_desatualizados(df, dias_stale)

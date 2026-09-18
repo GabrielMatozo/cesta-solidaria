@@ -1,5 +1,6 @@
 import contextlib
 import html
+import traceback
 
 import streamlit as st
 
@@ -35,7 +36,12 @@ token = auth.get_token()
 def carregar_usuarios(user_id, _token):
     return db.listar_profiles(_token)
 
-profiles = carregar_usuarios(user["user_id"], token)
+try:
+    profiles = carregar_usuarios(user["user_id"], token)
+except Exception:
+    traceback.print_exc()
+    st.error("Erro ao carregar dados.")
+    st.stop()
 
 # ===== LISTA DE USUARIOS =====
 st.markdown("### Usuários Cadastrados")
@@ -125,4 +131,5 @@ with st.form("novo_usuario_form"):
                     elif "apenas administradores" in msg:
                         st.error("Somente administradores podem criar usuarios.")
                     else:
-                        st.error(f"Erro ao criar usuario: {e}")
+                        traceback.print_exc()
+                        st.error("Erro ao criar usuario. Tente novamente.")

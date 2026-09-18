@@ -29,6 +29,7 @@ try:
         "preco_stale_dias": db.get_config("preco_stale_dias", token),
     }
 except Exception:
+    traceback.print_exc()
     st.error("Erro ao carregar configuracoes.")
     st.stop()
 
@@ -73,9 +74,17 @@ if not regioes:
 # Montar opções: cidades conhecidas primeiro, depois outras
 opcoes_regiao = {}
 for r in regioes:
-    nome = r["nome"]
-    rid = r["region_id"]
+    if not isinstance(r, dict):
+        continue
+    nome = r.get("nome")
+    rid = r.get("region_id")
+    if not nome or not rid:
+        continue
     opcoes_regiao[f"{nome} ({rid})"] = rid
+
+if not opcoes_regiao:
+    st.error("Erro ao carregar regioes. Tente novamente.")
+    st.stop()
 
 atual = config_atual["tenda_region_id"] or "000010"
 
@@ -122,17 +131,24 @@ with st.expander("Adicionar região manualmente"):
                 st.cache_data.clear()
                 flash(f"Regiao {novo_nome} adicionada!")
                 st.rerun()
-            except Exception as e:
-                st.error(f"Erro ao adicionar região: {e}")
+            except Exception:
+                traceback.print_exc()
+                st.error("Erro ao adicionar regiao. Tente novamente.")
         else:
             st.warning("Preencha código e nome da região.")
 
 # ===== ALERTA DE PREÇO DESATUALIZADO =====
 st.markdown("### Alerta de preço desatualizado")
+try:
+    dias_default = int(config_atual["preco_stale_dias"] or config.PRECO_STALE_DIAS_DEFAULT)
+except (ValueError, TypeError, KeyError):
+    dias_default = config.PRECO_STALE_DIAS_DEFAULT
+if dias_default < 1 or dias_default > 30:
+    dias_default = config.PRECO_STALE_DIAS_DEFAULT
 dias_input = st.number_input(
     "Dias sem atualização para alertar",
     min_value=1, max_value=30,
-    value=int(config_atual['preco_stale_dias'] or config.PRECO_STALE_DIAS_DEFAULT),
+    value=dias_default,
 )
 if st.button("Salvar limite de dias"):
     try:
@@ -151,81 +167,91 @@ col1, col2, col3 = st.columns(3)
 with col1:
     if st.button("Executar Scraper de Preços", type="primary", width='stretch'):
         with st.spinner("Buscando preços no Tenda..."):
-            region_id = db.get_config("tenda_region_id", token) or config.TENDA_REGION_DEFAULT
-            produtos = db.listar_produtos(token)
-            com_token = [p for p in produtos if p.get("token_tenda")]
-            if not com_token:
-                st.warning("Nenhum produto com token_tenda cadastrado.")
+            try:
+                region_id = db.get_config("tenda_region_id", token) or config.TENDA_REGION_DEFAULT
+                produtos = db.listar_produtos(token)
+            except Exception:
+                traceback.print_exc()
+                st.error("Erro ao carregar dados. Tente novamente.")
             else:
-                cliente_scraper = scraper_tenda.TendaScraper(region_id=region_id)
-                barra = st.progress(0)
-                atualizados = 0
-                erros = 0
-                for i, prod in enumerate(com_token):
-                    try:
-                        if prod.get("termo_busca"):
-                            vencedor = cliente_scraper.buscar_mais_barato(
-                                prod["termo_busca"], unidade_alvo=prod.get("unidade") or ""
-                            )
-                            if not vencedor:
-                                st.caption(f"{prod['nome']}: nenhum candidato com o mesmo peso; preço mantido")
-                                continue
-                            preco = vencedor.preco
-                            slug_dia = vencedor.slug
-                            marca_dia = vencedor.marca or ""
-                        else:
-                            resultado = scraper_tenda.buscar_preco_produto(prod["token_tenda"], region_id)
-                            preco = resultado["preco"]
-                            slug_dia = prod["token_tenda"]
-                            marca_dia = ""
-                        agora = datetime.now(UTC).isoformat()
-                        db.inserir_precos_historico([
-                            {"produto_id": prod["id"], "preco": preco, "dia": agora[:10], "region_id": region_id}
-                        ], token)
-                        upsert_data = {
-                            "id": prod["id"],
-                            "nome": prod["nome"],
-                            "marca": marca_dia or prod.get("marca"),
-                            "unidade": prod.get("unidade"),
-                            "qtd_por_cesta": prod.get("qtd_por_cesta"),
-                            "estoque_atual": prod.get("estoque_atual"),
-                            "preco_atual": preco,
-                            "token_tenda": slug_dia,
-                            "url_tenda": f"https://www.tendaatacado.com.br/produto/{slug_dia}",
-                            "ativo": prod.get("ativo", True),
-                            "ultima_atualizacao_preco": agora
-                        }
-                        db.upsert_produtos([upsert_data], token)
-                        atualizados += 1
-                    except Exception:
-                        traceback.print_exc()
-                        erros += 1
-                        st.warning(f"Erro ao atualizar {prod.get('nome', '?')}. Pulando...")
-                    barra.progress((i + 1) / len(com_token))
-                st.success(f"Scraper concluido: {atualizados} atualizados, {erros} erros.")
-            st.cache_data.clear()
+                com_token = [p for p in produtos if p.get("token_tenda")]
+                if not com_token:
+                    st.warning("Nenhum produto com token_tenda cadastrado.")
+                else:
+                    cliente_scraper = scraper_tenda.TendaScraper(region_id=region_id)
+                    barra = st.progress(0)
+                    atualizados = 0
+                    erros = 0
+                    for i, prod in enumerate(com_token):
+                        try:
+                            if prod.get("termo_busca"):
+                                vencedor = cliente_scraper.buscar_mais_barato(
+                                    prod["termo_busca"], unidade_alvo=prod.get("unidade") or ""
+                                )
+                                if not vencedor:
+                                    st.caption(f"{prod['nome']}: nenhum candidato com o mesmo peso; preço mantido")
+                                    continue
+                                preco = vencedor.preco
+                                slug_dia = vencedor.slug
+                                marca_dia = vencedor.marca or ""
+                            else:
+                                resultado = scraper_tenda.buscar_preco_produto(prod["token_tenda"], region_id)
+                                preco = resultado["preco"]
+                                slug_dia = prod["token_tenda"]
+                                marca_dia = ""
+                            agora = datetime.now(UTC).isoformat()
+                            db.inserir_precos_historico([
+                                {"produto_id": prod["id"], "preco": preco, "dia": agora[:10], "region_id": region_id}
+                            ], token)
+                            upsert_data = {
+                                "id": prod["id"],
+                                "nome": prod["nome"],
+                                "marca": marca_dia or prod.get("marca"),
+                                "unidade": prod.get("unidade"),
+                                "qtd_por_cesta": prod.get("qtd_por_cesta"),
+                                "estoque_atual": prod.get("estoque_atual"),
+                                "preco_atual": preco,
+                                "token_tenda": slug_dia,
+                                "url_tenda": f"https://www.tendaatacado.com.br/produto/{slug_dia}",
+                                "ativo": prod.get("ativo", True),
+                                "ultima_atualizacao_preco": agora
+                            }
+                            db.upsert_produtos([upsert_data], token)
+                            atualizados += 1
+                        except Exception:
+                            traceback.print_exc()
+                            erros += 1
+                            st.warning(f"Erro ao atualizar {prod.get('nome', '?')}. Pulando...")
+                        barra.progress((i + 1) / len(com_token))
+                    st.success(f"Scraper concluido: {atualizados} atualizados, {erros} erros.")
+                st.cache_data.clear()
 
 with col2:
     if st.button("Gerar Backup", type="secondary", width='stretch'):
         with st.spinner("Gerando backup das tabelas..."):
             # profiles fica de fora: contém dados de contas e o arquivo
             # fica no disco sem controle de acesso.
-            tabelas = {
-                "produtos": db.listar_tabela("produtos", token),
-                "precos_historico": db.listar_tabela("precos_historico", token),
-                "compras": db.listar_tabela("compras", token),
-                "regions": db.listar_tabela("regions", token),
-                "config": db.listar_tabela("config", token),
-            }
-            backup_json = json.dumps(tabelas, ensure_ascii=False, default=str, indent=2)
-            st.download_button(
-                "Baixar backup.json",
-                backup_json,
-                f"backup_cesta_solidaria_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json",
-                "application/json",
-                width='stretch',
-            )
-            st.success("Backup pronto para download.")
+            try:
+                tabelas = {
+                    "produtos": db.listar_tabela("produtos", token),
+                    "precos_historico": db.listar_tabela("precos_historico", token),
+                    "compras": db.listar_tabela("compras", token),
+                    "regions": db.listar_tabela("regions", token),
+                    "config": db.listar_tabela("config", token),
+                }
+            except Exception:
+                traceback.print_exc()
+                st.error("Erro ao carregar dados. Tente novamente.")
+            else:
+                backup_json = json.dumps(tabelas, ensure_ascii=False, default=str, indent=2)
+                st.download_button(
+                    "Baixar backup.json",
+                    backup_json,
+                    f"backup_cesta_solidaria_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json",
+                    "application/json",
+                    width='stretch',
+                )
+                st.success("Backup pronto para download.")
 
 with col3:
     if st.button("Popular Dados Iniciais (Seed)", type="secondary", width='stretch'):
@@ -252,30 +278,35 @@ with col3:
             if not csv_path.exists():
                 st.error(f"Arquivo não encontrado: {csv_path}")
             else:
-                with open(csv_path, encoding="utf-8") as f:
-                    df = csv_io.ler_csv(f.read())
-                cols = ["nome", "marca", "unidade", "qtd_por_cesta", "estoque_atual",
-                        "preco_atual", "token_tenda", "url_tenda", "termo_busca", "ativo"]
-                for col in cols:
-                    if col not in df.columns:
-                        df[col] = None
-                df["qtd_por_cesta"] = df["qtd_por_cesta"].fillna(1)
-                df["estoque_atual"] = df["estoque_atual"].fillna(0)
-                df["ativo"] = df["ativo"].map(estoque.normalizar_ativo).where(df["ativo"].notna(), True)
-                if "id" in df.columns:
-                    df["id"] = df["id"].where(df["id"].notna(), None)
-
-                rows = df[["id"] + cols if "id" in df.columns else cols].to_dict("records")
-                rows = estoque.limpar_nan(rows)
                 try:
-                    # ignore_duplicates: seed nao destrói estado operacional
-                    # (estoque/preço) de produtos que já existem no banco.
-                    db.upsert_produtos(rows, token, ignore_duplicates=True)
-                    st.cache_data.clear()
-                    flash(f"Seed concluido: {len(rows)} produtos importados.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Erro no seed: {e}")
+                    with open(csv_path, encoding="utf-8") as f:
+                        df = csv_io.ler_csv(f.read())
+                except (OSError, ValueError):
+                    traceback.print_exc()
+                    st.error("Erro ao ler seed. Tente novamente.")
+                else:
+                    cols = ["nome", "marca", "unidade", "qtd_por_cesta", "estoque_atual",
+                            "preco_atual", "token_tenda", "url_tenda", "termo_busca", "ativo"]
+                    for col in cols:
+                        if col not in df.columns:
+                            df[col] = None
+                    df["qtd_por_cesta"] = df["qtd_por_cesta"].fillna(1)
+                    df["estoque_atual"] = df["estoque_atual"].fillna(0)
+                    df["ativo"] = df["ativo"].map(estoque.normalizar_ativo).where(df["ativo"].notna(), True)
+                    if "id" in df.columns:
+                        df["id"] = df["id"].where(df["id"].notna(), None)
+
+                    rows = df[["id"] + cols if "id" in df.columns else cols].to_dict("records")
+                    rows = estoque.limpar_nan(rows)
+                    try:
+                        # ignore_duplicates: seed nao destrói estado operacional
+                        # (estoque/preço) de produtos que já existem no banco.
+                        db.upsert_produtos(rows, token, ignore_duplicates=True)
+                        st.cache_data.clear()
+                        flash(f"Seed concluido: {len(rows)} produtos importados.")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro no seed: {e}")
 
 # Nova linha: Descoberta automática de tokens
 st.markdown("### Descoberta Automática de Tokens Tenda")
@@ -283,54 +314,65 @@ st.caption("Busca automaticamente o token_tenda no site do Tenda para produtos s
 
 if st.button("Descobrir Tokens Tenda", type="secondary", width='stretch'):
     with st.spinner("Buscando tokens no Tenda Atacado..."):
-        produtos = db.listar_produtos(token)
-        sem_token = [p for p in produtos if p.get("ativo") and not p.get("token_tenda")]
-        if not sem_token:
-            st.info("Todos os produtos ativos já possuem token_tenda.")
+        try:
+            produtos = db.listar_produtos(token)
+        except Exception:
+            traceback.print_exc()
+            st.error("Erro ao carregar dados. Tente novamente.")
         else:
-            region_id = db.get_config("tenda_region_id", token) or config.TENDA_REGION_DEFAULT
-            barra = st.progress(0)
-            atualizados = 0
-            erros = 0
-            erros_detalhes = []
-            tokens_encontrados = []
-            for i, prod in enumerate(sem_token):
+            sem_token = [p for p in produtos if p.get("ativo") and not p.get("token_tenda")]
+            if not sem_token:
+                st.info("Todos os produtos ativos já possuem token_tenda.")
+            else:
                 try:
-                    token_tenda = scraper_tenda.buscar_token_por_nome(prod["nome"], region_id)
-                    if token_tenda:
-                        upsert_data = {
-                            "id": prod["id"],
-                            "nome": prod["nome"],
-                            "marca": prod.get("marca"),
-                            "unidade": prod.get("unidade"),
-                            "qtd_por_cesta": prod.get("qtd_por_cesta"),
-                            "estoque_atual": prod.get("estoque_atual"),
-                            "preco_atual": prod.get("preco_atual"),
-                            "token_tenda": token_tenda,
-                            "url_tenda": prod.get("url_tenda"),
-                            "termo_busca": prod.get("termo_busca"),
-                            "ativo": prod.get("ativo", True),
-                            "ultima_atualizacao_preco": None
-                        }
-                        db.upsert_produtos([upsert_data], token)
-                        atualizados += 1
-                        tokens_encontrados.append({"nome": prod["nome"], "token": token_tenda})
-                    else:
-                        erros += 1
-                        erros_detalhes.append(f"{prod['nome']}: nenhum resultado na busca")
-                except Exception as e:
-                    erros += 1
-                    erros_detalhes.append(f"{prod['nome']}: {type(e).__name__}: {e}")
-                barra.progress((i + 1) / len(sem_token))
-            st.cache_data.clear()
-            # Store results in session_state to persist after rerun
-            st.session_state["token_discovery_result"] = {
-                "atualizados": atualizados,
-                "erros": erros,
-                "erros_detalhes": erros_detalhes,
-                "tokens_encontrados": tokens_encontrados,
-            }
-            st.rerun()
+                    region_id = db.get_config("tenda_region_id", token) or config.TENDA_REGION_DEFAULT
+                except Exception:
+                    traceback.print_exc()
+                    st.error("Erro ao carregar dados. Tente novamente.")
+                else:
+                    barra = st.progress(0)
+                    atualizados = 0
+                    erros = 0
+                    erros_detalhes = []
+                    tokens_encontrados = []
+                    for i, prod in enumerate(sem_token):
+                        try:
+                            token_tenda = scraper_tenda.buscar_token_por_nome(prod["nome"], region_id)
+                            if token_tenda:
+                                upsert_data = {
+                                    "id": prod["id"],
+                                    "nome": prod["nome"],
+                                    "marca": prod.get("marca"),
+                                    "unidade": prod.get("unidade"),
+                                    "qtd_por_cesta": prod.get("qtd_por_cesta"),
+                                    "estoque_atual": prod.get("estoque_atual"),
+                                    "preco_atual": prod.get("preco_atual"),
+                                    "token_tenda": token_tenda,
+                                    "url_tenda": prod.get("url_tenda"),
+                                    "termo_busca": prod.get("termo_busca"),
+                                    "ativo": prod.get("ativo", True),
+                                    "ultima_atualizacao_preco": None
+                                }
+                                db.upsert_produtos([upsert_data], token)
+                                atualizados += 1
+                                tokens_encontrados.append({"nome": prod["nome"], "token": token_tenda})
+                            else:
+                                erros += 1
+                                erros_detalhes.append(f"{prod['nome']}: nenhum resultado na busca")
+                        except Exception:
+                            traceback.print_exc()
+                            erros += 1
+                            erros_detalhes.append(f"{prod['nome']}: erro ao buscar token")
+                        barra.progress((i + 1) / len(sem_token))
+                    st.cache_data.clear()
+                    # Store results in session_state to persist after rerun
+                    st.session_state["token_discovery_result"] = {
+                        "atualizados": atualizados,
+                        "erros": erros,
+                        "erros_detalhes": erros_detalhes,
+                        "tokens_encontrados": tokens_encontrados,
+                    }
+                    st.rerun()
 
 # Display results from session_state (persists after rerun)
 if "token_discovery_result" in st.session_state:

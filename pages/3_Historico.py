@@ -1,5 +1,6 @@
 import html
 import json
+import traceback
 
 import pandas as pd
 import streamlit as st
@@ -25,7 +26,12 @@ def carregar_compras(user_id, _token):
     return db.listar_compras(_token)
 
 with st.spinner("Carregando histórico..."):
-    compras = carregar_compras(user["user_id"], token)
+    try:
+        compras = carregar_compras(user["user_id"], token)
+    except Exception:
+        traceback.print_exc()
+        st.error("Erro ao carregar dados.")
+        st.stop()
 
 if not compras:
     st.info("Nenhuma compra registrada ainda. Faça sua primeira simulação no **Simulador**!")
@@ -44,6 +50,9 @@ def parse_itens(raw) -> list | None:
 
 
 df = pd.DataFrame(compras)
+if "itens" not in df.columns or "data" not in df.columns:
+    st.error("Erro ao carregar dados.")
+    st.stop()
 df["itens_lista"] = df["itens"].apply(parse_itens)
 df["data_exibicao"] = df["data"].apply(lambda x: config.formatar_data_hora(x) if x else "-")
 df["valor_familia"] = df.apply(
@@ -149,13 +158,28 @@ st.markdown("### Evolução de Preços por Produto")
 def carregar_precos(user_id, _token):
     return db.listar_tabela("precos_historico", _token)
 
-precos = carregar_precos(user["user_id"], token)
+try:
+    precos = carregar_precos(user["user_id"], token)
+except Exception:
+    traceback.print_exc()
+    st.error("Erro ao carregar historico de precos.")
+    st.stop()
+if precos:
+    precos = [
+        p for p in precos
+        if isinstance(p, dict) and p.get("produto_id") is not None and p.get("dia") and p.get("preco") is not None
+    ]
 if precos:
     precos_df = pd.DataFrame(precos)
     produtos_unicos = precos_df["produto_id"].unique()
 
     if len(produtos_unicos) > 0:
-        produtos_map = {p["id"]: p["nome"] for p in db.listar_produtos(token)}
+        try:
+            produtos_map = {p["id"]: p["nome"] for p in db.listar_produtos(token)}
+        except Exception:
+            traceback.print_exc()
+            st.error("Erro ao carregar historico de precos.")
+            st.stop()
         prod_id = st.selectbox(
             "Produto",
             produtos_unicos,
@@ -163,9 +187,11 @@ if precos:
             key="hist_prod_preco"
         )
 
-        prod_precos = precos_df[precos_df["produto_id"] == prod_id].sort_values("dia")
+        prod_precos = precos_df[precos_df["produto_id"] == prod_id].copy().sort_values("dia")
         if not prod_precos.empty:
-            prod_precos["dia"] = pd.to_datetime(prod_precos["dia"])
+            prod_precos["dia"] = pd.to_datetime(prod_precos["dia"], errors="coerce")
+            prod_precos = prod_precos.dropna(subset=["dia"])
+        if not prod_precos.empty and "preco" in prod_precos.columns:
             st.line_chart(prod_precos.set_index("dia")["preco"], height=250)
             st.caption(f"Evolução do preço - Região: {prod_precos['region_id'].iloc[0] if 'region_id' in prod_precos.columns else 'N/A'}")
 else:

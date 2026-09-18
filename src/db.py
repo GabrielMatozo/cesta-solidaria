@@ -241,12 +241,17 @@ def renovar_sessao(refresh_token):
         if resp.status_code != 200:
             return None
         dados = resp.json()
-        return {
-            "access_token": dados["access_token"],
-            "refresh_token": dados.get("refresh_token"),
-            "user": dados.get("user"),
-        }
+        try:
+            return {
+                "access_token": dados["access_token"],
+                "refresh_token": dados.get("refresh_token"),
+                "user": dados.get("user"),
+            }
+        except (KeyError, TypeError, ValueError):
+            return None
     except requests.RequestException:
+        return None
+    except (KeyError, TypeError, ValueError):
         return None
 
 

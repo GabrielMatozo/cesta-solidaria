@@ -8,6 +8,8 @@ COLUNAS_CSV = [
     "ultima_atualizacao_preco",
 ]
 
+MAX_CSV_BYTES = 5 * 1024 * 1024
+
 
 def produtos_to_csv(df: pd.DataFrame) -> str:
     cols = [c for c in COLUNAS_CSV if c in df.columns]
@@ -82,9 +84,9 @@ def diff_importacao(atual: pd.DataFrame, novo: pd.DataFrame) -> dict:
         for campo in campos:
             if campo not in r:
                 continue
-            if not _iguais(r[campo], antigo[campo]):
+            if not _iguais(r[campo], antigo.get(campo)):
                 alterados.append({
                     "id": int(rid), "produto": r.get("nome", antigo.get("nome", "")),
-                    "campo": campo, "de": antigo[campo], "para": r[campo],
+                    "campo": campo, "de": antigo.get(campo), "para": r[campo],
                 })
     return {"novos": novos, "alterados": alterados}
