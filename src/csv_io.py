@@ -15,7 +15,12 @@ def produtos_to_csv(df: pd.DataFrame) -> str:
 
 
 def ler_csv(texto: str) -> pd.DataFrame:
-    return pd.read_csv(io.StringIO(texto))
+    try:
+        return pd.read_csv(io.StringIO(texto))
+    except (pd.errors.ParserError, pd.errors.EmptyDataError, UnicodeDecodeError):
+        raise ValueError(
+            "Arquivo CSV malformado. Confira aspas e separadores e tente de novo."
+        ) from None
 
 
 def validar_csv(df: pd.DataFrame) -> list[str]:

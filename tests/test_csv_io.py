@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 from src import csv_io
 
@@ -103,3 +104,23 @@ def test_diff_importacao_nan_nan_nao_conta_como_alterado():
     ])
     diff = csv_io.diff_importacao(atual, novo)
     assert diff["alterados"] == []
+
+
+def test_ler_csv_aspas_nao_fechada_erro_controlado():
+    with pytest.raises(ValueError, match="malformado"):
+        csv_io.ler_csv('nome,qtd_por_cesta,estoque_atual\n"arroz,1,0\nfeijao,2,0\n')
+
+
+def test_ler_csv_erro_nao_vaza_detalhe_do_parser():
+    try:
+        csv_io.ler_csv('nome,qtd_por_cesta,estoque_atual\n"arroz,1,0\n')
+    except ValueError as e:
+        assert "tokenizing" not in str(e)
+        assert "ParserError" not in type(e).__name__
+    else:
+        raise AssertionError("devia levantar ValueError")
+
+
+def test_ler_csv_vazio_erro_controlado():
+    with pytest.raises(ValueError):
+        csv_io.ler_csv("")
